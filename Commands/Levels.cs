@@ -66,7 +66,14 @@ namespace Obscure.Commands
                 for (int i = 0; i < top; i++)
                 {
                     var p = people[i];
-                    embed.AddField($"#{i + 1} - {Context.Guild.GetUser(p.profile.id).GlobalName} *({p.profile.username})*", $"**Level:** {p.profile.level} with **{p.profile.exp}**exp", false);
+                    if(Context.Guild.GetUser(p.profile.id) != null)
+                    {
+                        embed.AddField($"#{i + 1} - {Context.Guild.GetUser(p.profile.id).GlobalName} *({p.profile.username})*", $"**Level:** {p.profile.level} with **{p.profile.exp}**exp", false);
+                    }
+                    else
+                    {
+                        embed.AddField($"#{i + 1} - {p.profile.username} ***(User no longer in server)***", $"**Level:** {p.profile.level} with **{p.profile.exp}**exp", false);
+                    }
                 }
                 embed.WithFooter("Obscūrus • Team Unity Development");
                 embed.WithCurrentTimestamp();
@@ -79,7 +86,15 @@ namespace Obscure.Commands
                 for (int i = 0; i < top; i++)
                 {
                     var p = people[i];
-                    embed.AddField($"#{i + 1} - {Context.Guild.GetUser(p.profile.id).GlobalName} *({p.profile.username})*", $"**{p.profile.currency + p.profile.bank}**pickles", false);
+                    if (Context.Guild.GetUser(p.profile.id) != null)
+                    {
+                        embed.AddField($"#{i + 1} - {Context.Guild.GetUser(p.profile.id).GlobalName} *({p.profile.username})*", $"**{p.profile.currency + p.profile.bank}**pickles", false);
+                    }
+                    else
+                    {
+                        embed.AddField($"#{i + 1} - {p.profile.username} ***(User no longer in server)***", $"**{p.profile.currency + p.profile.bank}**pickles", false);
+                    }
+                    
                 }
                 embed.WithFooter("Obscūrus • Team Unity Development");
                 embed.WithCurrentTimestamp();

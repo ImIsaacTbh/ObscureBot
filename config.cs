@@ -71,7 +71,15 @@ namespace Obscure
                         enums.Profile p = _deserializer.Deserialize<enums.Profile>(await File.ReadAllTextAsync($"{d}\\storage.yaml"));
                         enums.Punishments poo = _deserializer.Deserialize<enums.Punishments>(await File.ReadAllTextAsync($"{d}\\punishments.yaml"));
                         p.robberyInProgress = false;
-                        p.startingHeist = false;
+                        try
+                        {
+                            p.startingHeist = false;
+                            Console.WriteLine("Thing done lmao kevin sucks");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.ToString());
+                        }
                         p.heistInProgress = false;
                         gtemp.users.Add(new enums.User() { profile = p, punishments = poo });
                         Console.WriteLine($"Grabbed user : {p.username} from storage");

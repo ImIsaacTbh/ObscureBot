@@ -1,23 +1,8 @@
 ﻿using Discord;
-using Discord.Commands;
 using Discord.Interactions;
-using Discord.Rest;
 using Discord.WebSocket;
-using Microsoft.VisualBasic;
-using Newtonsoft.Json.Converters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
 using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using System.Drawing;
-using static System.Net.WebRequestMethods;
 using RequireUserPermissionAttribute = Discord.Interactions.RequireUserPermissionAttribute;
-using Color = System.Drawing.Color;
-using System.Reflection;
 
 namespace Obscure.Commands
 {
@@ -77,7 +62,7 @@ namespace Obscure.Commands
             if (detailed) { desc.AppendLine("### Detailed View:\n"); }
             foreach (IUser user in Context.Guild.Users)
             {
-                Task.Delay(10);
+                await Task.Delay(10);
                 var useringuild = Context.Guild.GetUser(user.Id);
                 if (useringuild.Roles.Contains(role))
                 {
@@ -92,7 +77,7 @@ namespace Obscure.Commands
                     count++;
 
                     if (!detailed) { desc.AppendLine($"**{count}:** {user.GlobalName} ({user.Mention}"); }
-                    else { desc.AppendLine($"**{count}:** {user.GlobalName} ({user.Mention}) \n> **Joined at:** <t:{useringuild.JoinedAt.Value.ToUnixTimeSeconds()}:R> \n> **Is boosting:** {boosting} \n"); }
+                    else { desc.AppendLine($"**{count}:** {user.GlobalName} ({user.Mention}) \n> **Joined:** <t:{useringuild.JoinedAt.Value.ToUnixTimeSeconds()}:R> \n> **Is boosting:** {boosting} \n"); }
 
                 }
                 else;
@@ -148,7 +133,7 @@ namespace Obscure.Commands
                 usersInRole = 0;
             }
 
-
+            if (roles.Count() % 3 != 0) { embed.AddField($"⠀", $"⠀", true); }
             await RespondAsync(embed: embed.Build());
         }
 

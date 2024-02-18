@@ -2,18 +2,7 @@
 using Discord.Interactions;
 using Discord.WebSocket;
 using Obscure;
-using Obscure.API;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using YamlDotNet.Core.Tokens;
-using YamlDotNet.Serialization;
-using static Obscure.enums;
+
 
 namespace Harmony_Utilities.Commands
 {
@@ -36,10 +25,10 @@ namespace Harmony_Utilities.Commands
         {
             var victim = Program.guilds.GetGuild(target.Guild.Id).GetUser(target.Id);
             var robber = (IGuildUser)Context.User;
-            Obscure.API.User.GetUser((IGuildUser)Context.User).profile.startingHeist = true;
             if (target.IsBot == true || target == Context.User) { await RespondAsync("You cannot heist that user!", ephemeral: true); return; };
             if (Obscure.API.User.GetUser(robber).profile.lastBankRobbery.AddDays(1) > DateTime.UtcNow) { await RespondAsync("You can only heist once every 24 hours!", ephemeral: true); return; }
             if (Obscure.API.User.GetUser(robber).profile.startingHeist) { await RespondAsync("You are already starting another heist!", ephemeral: true); return; };
+            Obscure.API.User.GetUser((IGuildUser)Context.User).profile.startingHeist = true;
             List<IGuildUser> robbers = new List<IGuildUser>();
             EmbedFieldBuilder dynamicList = new EmbedFieldBuilder()
                 .WithName("Participants")
