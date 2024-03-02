@@ -2,7 +2,10 @@
 using Discord.Interactions;
 using Discord.WebSocket;
 using Obscure;
-
+using System.Text;
+using Fergun.Interactive;
+using Obscure.API;
+using System.Net;
 
 namespace Harmony_Utilities.Commands
 {
@@ -13,10 +16,15 @@ namespace Harmony_Utilities.Commands
         private readonly DiscordSocketClient _client;
 
 
-        public Currency(InteractionHandler handler, DiscordSocketClient client)
+
+
+        private readonly InteractiveService _interactive;
+
+        public Currency(InteractionHandler handler, DiscordSocketClient client, InteractiveService interactive)
         {
             _handler = handler;
             _client = client;
+            _interactive = interactive;
         }
 
 
@@ -321,10 +329,109 @@ namespace Harmony_Utilities.Commands
             embed.WithFooter("Obscūrus • Team Unity Development");
             embed.WithCurrentTimestamp();
             await RespondAsync($"{Context.User.Mention} - {user.Mention}", embed: embed.Build());
-            
+
         }
 
 
+
+
+        [SlashCommand("unscramble", "Unscramble the word before the timer runs out!")]
+        public async Task unscramble()
+        {
+            var user = Guild.GetGuild(Context.Guild.Id).GetUser(Context.User.Id);
+            var author = Context.User;
+            var rnd = new Random();
+
+            var wclient = new WebClient();
+            var downloadedString = "";
+
+            var wordType = rnd.Next(0, 3);
+            if (wordType == 0) { downloadedString = wclient.DownloadString("http://www.wordgenerator.net/application/p.php?id=nouns&type=1&spaceflag=false"); }
+            if (wordType == 1) { downloadedString = wclient.DownloadString("http://www.wordgenerator.net/application/p.php?id=adjectives&type=1&spaceflag=false"); }
+            if (wordType == 2) { downloadedString = wclient.DownloadString("http://www.wordgenerator.net/application/p.php?id=verbs&type=1&spaceflag=false"); }
+                // id= can be: nouns, adjectives, verbs, dictionary_words.
+            string[] words = downloadedString.Split(',');
+
+            int index = rnd.Next(0, words.Length);
+            var word = words[index].ToString();
+            Console.Write($"\n{word}\n");
+
+            StringBuilder jumble = new StringBuilder(word);
+            int length = jumble.Length;
+            for (int i = length - 1; i > 0; i--)
+            {
+                int j = rnd.Next(i);
+                char temp = jumble[j];
+                jumble[j] = jumble[i];
+                jumble[i] = temp;
+            }
+
+            var rewrnd = new Random();
+            var reward = (int)Math.Ceiling(rewrnd.Next(50, 500) / 0.67 * word.Length);
+            Console.WriteLine($"Reward is {reward}");
+            long timeleft = DateTimeOffset.UtcNow.AddSeconds(30).ToUnixTimeSeconds();
+            EmbedBuilder embed = new EmbedBuilder()
+            {
+                Title = $"Scrambled",
+                Description = $"**Word: {jumble}** \nYou have to unscramble this word <t:{timeleft}:R> to get a reward! \nThe reward is: **{reward}pickles**!"
+            };
+            embed.WithFooter("Obscūrus • Team Unity Development");
+            embed.WithCurrentTimestamp();
+            await RespondAsync($"{Context.User.Mention}", embed: embed.Build());
+            user.profile.lastUnscramble = DateTime.UtcNow.ToUniversalTime();
+            await Task.Delay(50);
+     
+            bool win = false;
+            while (DateTimeOffset.UtcNow.ToUnixTimeSeconds() < timeleft)
+            {
+                var timer = timeleft - DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                await Task.Delay(1000);
+
+                Console.WriteLine("Getting message");
+                var messages = await Context.Channel.GetMessagesAsync(1).FlattenAsync();
+                Console.WriteLine("Got message");
+                var uresponse = messages.FirstOrDefault();
+                var msgRef = new MessageReference(messages.First().Id);
+                Console.WriteLine($"Current time (unix) {DateTimeOffset.UtcNow.ToUnixTimeSeconds()}");
+                Console.WriteLine($"Time left (unix): {timer}");
+                Console.WriteLine($"Time left: {timer} seconds");
+                if (uresponse == null) { Console.WriteLine("response null"); }
+
+                if (uresponse.Content == null) { Console.WriteLine("response content null"); }
+
+                if (uresponse.Author != author) { Console.WriteLine("Recieved response from someone who was not the author"); }
+                else
+                {
+                    if (uresponse.Content.ToLower() == word.ToLower())
+                    {
+                        Console.WriteLine("Recieved response from someone who WAS the author \nThe response was right!");
+                        embed.Description = $"**You got it right** - You had {timer} seconds left! \nYou have won: **{reward}pickles**! \nThe word was: **{word}**";
+                        uresponse.DeleteAsync();
+                        user.profile.currency += reward;
+                        win = true;
+                        await Context.Interaction.ModifyOriginalResponseAsync(x => x.Embed = embed.Build());
+                        break;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Recieved response from someone who WAS the author \nBut the response was wrong");
+                    }
+
+                }
+
+            }
+            if (!win)
+            {
+                embed.Description = $"**You ran out of time** :( \nThe reward was: **{reward}pickles** \nThe word was: **\"{word}**\"";
+                Console.WriteLine("Ran out of time :)");
+                await Context.Interaction.ModifyOriginalResponseAsync(x => x.Embed = embed.Build());
+            }
+            else
+            {
+                return;
+            }
+            user.profile.lastUnscramble = DateTime.UtcNow.ToUniversalTime();
+        }
 
         [SlashCommand("slotmachine", "Gamble your life away")]
         public async Task slots([Choice("10", 10)][Choice("50", 50)][Choice("100", 100)][Choice("500", 500)][Choice("1000", 1000)] uint amount = 10)

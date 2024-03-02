@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
 using System.Text;
 using RequireUserPermissionAttribute = Discord.Interactions.RequireUserPermissionAttribute;
 
@@ -50,6 +51,22 @@ namespace Obscure.Commands
             }
 
         }
+
+        [SlashCommand("eval", "Super top secret ;)")]
+        public async Task eval(string args)
+        {
+            if (Context.User.Id != 343102736083976203 && Context.User.Id != 816685888058687541) { await Context.Channel.SendMessageAsync($"{Context.User.Mention} TRIED TO USE THE EVAL COMMAND <@343102736083976203> <@816685888058687541>"); await RespondAsync("Lmao fuck right off", ephemeral: true); return; }
+
+            try
+            {
+                var result = await CSharpScript.EvaluateAsync(args);
+                await RespondAsync(result.ToString(), ephemeral: false);
+            }
+            catch (Exception ex) { await RespondAsync("That's not valid code :(", ephemeral: true); return; }
+
+
+        }
+        
 
         [SlashCommand("users", "See how many users are in a role")]
         [RequireUserPermission(GuildPermission.UseApplicationCommands)]

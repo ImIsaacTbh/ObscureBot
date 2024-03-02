@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -113,6 +113,7 @@ namespace Obscure
             public DateTime lastBankRobbery { get; set; }
             public bool heistInProgress { get; set; } = false;
             public bool startingHeist { get; set; } = false;
+            public DateTime lastUnscramble { get; set; }
 
 
             public virtual void AddLevel()
