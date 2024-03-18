@@ -5,6 +5,7 @@ using Fergun.Interactive;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
+using Obscure.API;
 
 namespace Obscure
 {
@@ -122,11 +123,39 @@ namespace Obscure
 
             try
             {
-                if (msg.Author.IsBot)
+                if (msg.Author.IsBot||msg.Content == null||msg.Type == MessageType.GuildMemberJoin||msg.Type == MessageType.UserPremiumGuildSubscription)
                     return;
-                SocketGuild g = (msg.Channel as SocketGuildChannel).Guild;
-                if (Program.guilds.GetGuild(g.Id).config.levelToggle == false) { return; }
-                xpEvent(msg);
+
+                try
+                {
+                    if ((msg.Channel as SocketGuildChannel) == null)
+                    {
+                        return;
+                    }
+                    if (!Program.guilds.GetGuild((msg.Channel as SocketGuildChannel).Guild.Id).GetUser(msg.Author.Id).profile.isVerified)
+                    {
+                        Console.WriteLine($"User: {msg.Author.Username} is not verified");
+                        try
+                        {
+                            await (msg.Author as IGuildUser).SetTimeOutAsync(TimeSpan.FromSeconds(10));
+                        }
+
+                        catch { }
+                        await msg.DeleteAsync();
+                        var warning = await msg.Channel.SendMessageAsync($"{msg.Author.Mention} you are not verified. please use /verify to talk in this server");
+                        await Task.Delay(5000);
+
+                        await warning.DeleteAsync();
+                        return;
+                    }
+                    SocketGuild g = (msg.Channel as SocketGuildChannel).Guild;
+                    if (Program.guilds.GetGuild(g.Id).config.levelToggle == false) { return; }
+
+                    xpEvent(msg);
+                }
+                catch (Exception ex) { return; };   
+
+
             }
             catch (Exception ex) { }
         }

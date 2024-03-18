@@ -33,6 +33,7 @@ public class enums
 		public DateTime date { get; set; }
 
 		public TimeSpan duration { get; set; }
+
 	}
 
 	public class Guild
@@ -164,7 +165,9 @@ public class enums
 
 		public DateTime lastUnscramble { get; set; }
 
-		public virtual void AddLevel()
+        public Boolean isVerified { get; set; } = false;
+
+        public virtual void AddLevel()
 		{
 			level++;
 		}

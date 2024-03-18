@@ -243,13 +243,39 @@ namespace Harmony_Utilities.Commands
         }
 
         [SlashCommand("deposit", "Put money in your bank to keep it safe :)")]
-        public async Task deposit(int amount)
+        public async Task deposit(string amount)
         {
             var p = Program.guilds.GetGuild(Context.Guild.Id).GetUser(Context.User.Id);
-            if (p.profile.currency < amount) { await RespondAsync("You don't have that much in your wallet!", ephemeral: true); return; }
-            if (p.profile.robberyInProgress == true || p.profile.heistInProgress == true) { await RespondAsync("You can't do that while you're being robbed or heisted!", ephemeral: true); return; }
-            p.profile.currency -= amount;
-            p.profile.bank += amount;
+
+
+            if (amount != null)
+            {
+                if (float.TryParse(amount, out float numamount))
+                {
+
+                    if (p.profile.currency < numamount) { await RespondAsync("You don't have that much in your wallet!", ephemeral: true); return; }
+                    if (p.profile.robberyInProgress == true || p.profile.heistInProgress == true) { await RespondAsync("You can't do that while you're being robbed or heisted!", ephemeral: true); return; }
+                    p.profile.currency -= numamount;
+                    p.profile.bank += numamount;
+                }
+                else if (amount.ToLower() == "all")
+                {
+                    p.profile.bank += p.profile.currency;
+                    p.profile.currency -= p.profile.currency;
+                }
+                else
+                {
+                    await RespondAsync("You entered an incorrect value, valid arguments are <amount> or \"all\"", ephemeral: true); return;
+                }
+            }
+
+
+
+
+
+
+
+
 
             EmbedBuilder embed = new EmbedBuilder()
             {
@@ -269,6 +295,13 @@ namespace Harmony_Utilities.Commands
             var p = Program.guilds.GetGuild(Context.Guild.Id).GetUser(Context.User.Id);
             if (p.profile.bank < amount) { await RespondAsync("You don't have that much in your bank!", ephemeral: true); return; }
             if (p.profile.robberyInProgress == true || p.profile.heistInProgress == true) { await RespondAsync("You can't do that while you're being robbed or heisted!", ephemeral: true); return; }
+            if (amount.ToString() == "all")
+            {
+                p.profile.currency += p.profile.bank;
+                p.profile.bank -= p.profile.bank;
+
+
+            }
             p.profile.currency += amount;
             p.profile.bank -= amount;
 
@@ -345,10 +378,10 @@ namespace Harmony_Utilities.Commands
             var wclient = new WebClient();
             var downloadedString = "";
 
-            var wordType = rnd.Next(0, 3);
+            var wordType = rnd.Next(0, 2);
             if (wordType == 0) { downloadedString = wclient.DownloadString("http://www.wordgenerator.net/application/p.php?id=nouns&type=1&spaceflag=false"); }
             if (wordType == 1) { downloadedString = wclient.DownloadString("http://www.wordgenerator.net/application/p.php?id=adjectives&type=1&spaceflag=false"); }
-            if (wordType == 2) { downloadedString = wclient.DownloadString("http://www.wordgenerator.net/application/p.php?id=verbs&type=1&spaceflag=false"); }
+            //if (wordType == 2) { downloadedString = wclient.DownloadString("http://www.wordgenerator.net/application/p.php?id=verbs&type=1&spaceflag=false"); }
                 // id= can be: nouns, adjectives, verbs, dictionary_words.
             string[] words = downloadedString.Split(',');
 
@@ -434,7 +467,7 @@ namespace Harmony_Utilities.Commands
         }
 
         [SlashCommand("slotmachine", "Gamble your life away")]
-        public async Task slots([Choice("10", 10)][Choice("50", 50)][Choice("100", 100)][Choice("500", 500)][Choice("1000", 1000)] uint amount = 10)
+        public async Task slots([Choice("10", 10)][Choice("50", 50)][Choice("100", 100)][Choice("500", 500)][Choice("1000", 1000)][Choice("5000", 5000)][Choice("10000", 10000)] uint amount = 10)
         {
 
             var user = Context.User;
