@@ -4,6 +4,8 @@ using Discord.WebSocket;
 using RequireUserPermissionAttribute = Discord.Interactions.RequireUserPermissionAttribute;
 using Color = System.Drawing.Color;
 using System.Text.RegularExpressions;
+using System.Text.Json;
+using Newtonsoft.Json;
 
 namespace Obscure.Commands
 {
@@ -114,6 +116,83 @@ namespace Obscure.Commands
             embed.Description = $"**Name:** {name}\n**Hex:** #{hex} \n**R:** {myColor.R} *({(float)myColor.R * 4 / 1000})* \n**G:** {myColor.G} *({(float)myColor.G * 4 / 1000})* \n**B:** {myColor.B}  *({(float)myColor.B * 4 / 1000})*";
             Console.WriteLine(name);
             await Context.Interaction.ModifyOriginalResponseAsync(x => x.Embed = embed.Build());
+        }
+
+        public class ColorInfo
+        {
+            public string Name { get; set; }
+            public Images Images { get; set; }
+        }
+
+        public class Images
+        {
+            public string Square { get; set; }
+            public string Gradient { get; set; }
+        }
+
+        [SlashCommand("gradient", "Generate a gradiant from a hex color")]
+        [RequireUserPermission(GuildPermission.UseApplicationCommands)]
+        public async Task grandient(string hex)
+        {
+            EmbedBuilder embed = new EmbedBuilder();
+
+            if (!IsValidHex(hex))
+            {
+                await RespondAsync("That hex is invalid.", ephemeral: true); return;
+            }
+            hex = hex.Replace("#", "");
+            string url = $"https://api.alexflipnote.dev/color/{hex}"; // Replace with the actual API endpoint
+
+            using HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Add("parse", "application/json");
+            HttpResponseMessage response = await client.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                string jsonResponse = await response.Content.ReadAsStringAsync();
+
+                Console.WriteLine(jsonResponse);
+
+                // Parse the JSON response
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+                ColorInfo colorInfo = JsonConvert.DeserializeObject<ColorInfo>(jsonResponse);
+
+                if (colorInfo != null)
+                {
+                    //Console.WriteLine($"Name: {colorInfo.Name}");
+                    //Console.WriteLine($"Square Image URL: {colorInfo.Images?.Square}");
+                    //Console.WriteLine($"Gradient Image URL: {colorInfo.Images?.Gradient}");
+                    embed.Title = $"Gradient for {colorInfo.Name}";
+                    embed.ImageUrl = colorInfo.Images?.Gradient;
+                    embed.Color = new Discord.Color(HexToRGB(hex).R, HexToRGB(hex).G, HexToRGB(hex).B);
+                    embed.WithFooter("Obscūrus • Team Unity Development");
+                    embed.WithCurrentTimestamp();
+                    await RespondAsync(embed: embed.Build());
+                }
+                else
+                {
+                    //Console.WriteLine("Error parsing JSON response.");
+                    embed.Title = "Error";
+                    embed.Description = "Error parsing JSON response.";
+                    embed.Color = Discord.Color.Red;
+                    embed.WithFooter("Obscūrus • Team Unity Development");
+                    embed.WithCurrentTimestamp();
+                    await RespondAsync(embed: embed.Build(), ephemeral: true);
+                }
+            }
+            else
+            {
+                embed.Title = "Error";
+                embed.Description = $"HTTP Error: {response.StatusCode}";
+                embed.Color = Discord.Color.Red;
+                embed.WithFooter("Obscūrus • Team Unity Development");
+                embed.WithCurrentTimestamp();
+                await RespondAsync(embed: embed.Build(), ephemeral: true);
+            }
+
         }
     }
 }

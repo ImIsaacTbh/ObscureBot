@@ -10,6 +10,10 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Xml.Schema;
+using Obscura.Commands.EmbedBuilder;
+using System.Security.Cryptography;
+using Embed = Discord.Embed;
 
 namespace Obscure
 {
@@ -34,6 +38,7 @@ namespace Obscure
             _handler.Log += LogAsync;
             await _handler.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
             _client.ButtonExecuted += ButtonExecuted;
+            _client.ModalSubmitted += ModalSubmitted;
 
             _client.InteractionCreated += HandleInteraction;
         }
@@ -47,7 +52,127 @@ namespace Obscure
 
         async Task ButtonExecuted(SocketMessageComponent arg)
         {
-            await arg.Message.DeleteAsync();
+            string payload = arg.Data.CustomId;
+            if(payload.StartsWith("embed:"))
+            {
+                payload = payload.Remove(0, 6);
+                string[] data = payload.Split('_');
+                switch (data[0])
+                {
+                    case "field": 
+                        //                        ModalComponentBuilder cB = new ModalComponentBuilder()
+                        Modal b = new ModalBuilder(
+                                title: $"Field Builder - Field {data[2]}",
+                                customId: $"modal:{arg.Data.CustomId}")
+                            .AddTextInput("Title", $"modal:{arg.Data.CustomId}_title", TextInputStyle.Short,
+                                "PLACEHOLDER TITLE").AddTextInput("Content", $"modal:{arg.Data.CustomId}_content",
+                                TextInputStyle.Paragraph, "PLACEHOLDER CONTENT").AddTextInput("Inline (True or false)", $"modal:{arg.Data.CustomId}inline").Build();
+                        //Command.embedBuilders.FirstOrDefault(x => x.embedID == eID);
+                        await arg.RespondWithModalAsync(b);
+                        break;
+                    case "title": 
+                        Modal b2 = new ModalBuilder(title: $"Title Builder", customId: $"modal:{arg.Data.CustomId}").AddTextInput("Title", $"modal:{arg.Data.CustomId}_data", TextInputStyle.Short, "PLACEHOLDER TITLE").Build();
+                        await arg.RespondWithModalAsync(b2);
+                        break;
+                    case "color":
+                        Modal b3 = new ModalBuilder(title: $"Color", customId: $"modal:{arg.Data.CustomId}")
+                            .AddTextInput("HEX (With #)", $"modal:{arg.Data.CustomId}_data", TextInputStyle.Short,
+                                "PLACEHOLDER COLOR").Build();
+                        await arg.RespondWithModalAsync(b3);
+                        break;
+                    case "channel":
+                        Modal b4 = new ModalBuilder(title: $"Channel", customId: $"modal:{arg.Data.CustomId}")
+                            .AddTextInput("Channel ID", $"modal:{arg.Data.CustomId}_data", TextInputStyle.Short,
+                                                               "PLACEHOLDER CHANNEL ID").Build();
+                        await arg.RespondWithModalAsync(b4);
+                        break;
+                    case "send":
+                        int.TryParse(data[1], out int eID);
+                        Embed e = Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed.Build();
+                        Obscura.Commands.EmbedBuilder.Embed embedData =
+                            Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed;
+                        await arg.RespondAsync("Attempting to send embed", ephemeral: true);
+                        await ((arg.Channel as IGuildChannel).Guild.GetChannelAsync(embedData.ChannelId).Result as IMessageChannel).SendMessageAsync(embed: e);
+                        break;
+                    case "image":
+                        Modal b5 = new ModalBuilder(title: $"Image", customId: $"modal:{arg.Data.CustomId}")
+                            .AddTextInput("Image URL", $"modal:{arg.Data.CustomId}_data", TextInputStyle.Short,
+                                                               "PLACEHOLDER IMAGE URL").Build();
+                        await arg.RespondWithModalAsync(b5);
+                        break;
+                }
+            }
+        }
+
+        async Task ModalSubmitted(SocketModal arg)
+        {
+            List<SocketMessageComponentData> components = arg.Data.Components.ToList();
+            string[] parts = arg.Data.CustomId.Split(':');
+            if (parts[2].Contains("field"))
+            {
+                string payload = parts[2].Remove(0, 6);
+                string[] data = payload.Split('_');
+                //Console.WriteLine(payload);
+                int.TryParse(data[0], out int eID);
+                int.TryParse(data[1], out int fID);
+                //Console.WriteLine(components.FirstOrDefault(x => x.CustomId == $"{arg.Data.CustomId}_title").Value);
+                //Console.WriteLine(components.FirstOrDefault(x => x.CustomId == $"{arg.Data.CustomId}_content").Value);
+                Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed.Fields.Add(new Field
+                {
+                    id = fID,
+                    Name = components[0].Value,
+                    Value = components[1].Value,
+                    Inline = bool.Parse(components[2].Value)
+                });
+                await arg.RespondAsync($"Field {fID} for embed {eID} set to \"{components[0].Value}\" : \"{components[1].Value}\"");
+            }
+
+            if (parts[2].Contains("title"))
+            {
+                string payload = parts[2].Remove(0, 6);
+                int.TryParse(payload, out int eID);
+                //Console.WriteLine($"TITLE : CUSTOMID : {arg.Data.CustomId} EMBED ID : {eID}");
+                Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed.Title = components[0].Value;
+                await arg.RespondAsync($"Title for embed {eID} set to \"{components[0].Value}\"");
+            }
+
+            if (parts[2].Contains("color"))
+            {
+                string payload = parts[2].Remove(0, 6);
+                int.TryParse(payload, out int eID);
+                //Console.WriteLine($"COLOR : CUSTOMID : {arg.Data.CustomId} EMBED ID : {eID}");
+                Color c;
+                try
+                {
+                    c = (Color)System.Drawing.ColorTranslator.FromHtml(components[0].Value);
+                }
+                catch
+                {
+                    await arg.RespondAsync("Invalid color", ephemeral: true);
+                    return;
+                }
+
+                Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed.Color = c;
+                await arg.RespondAsync($"Color for embed {eID} set to \"{components[0].Value}\"");
+            }
+
+            if (parts[2].Contains("channel"))
+            {
+                string payload = parts[2].Remove(0, 8);
+                int.TryParse(payload, out int eID);
+                //Console.WriteLine($"CHANNEL : CUSTOMID : {arg.Data.CustomId} EMBED ID : {eID}");
+                Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed.ChannelId = ulong.Parse(components[0].Value);
+                await arg.RespondAsync($"Channel for embed {eID} set to \"{components[0].Value}\"");
+            }
+
+            if (parts[2].Contains("image"))
+            {
+                string payload = parts[2].Remove(0, 6);
+                int.TryParse(payload, out int eID);
+                //Console.WriteLine($"CHANNEL : CUSTOMID : {arg.Data.CustomId} EMBED ID : {eID}");
+                Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed.ImageURL = components[0].Value;
+                await arg.RespondAsync($"Image for embed {eID} set to \"[IMAGE]({components[0].Value})\"");
+            }
         }
 
         private async Task HandleInteraction(SocketInteraction interaction)

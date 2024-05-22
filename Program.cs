@@ -119,7 +119,6 @@ namespace Obscure
 
         private async Task OnMessageRecieved(SocketMessage msg)
         {
-
             try
             {
                 if (msg.Author.IsBot)
