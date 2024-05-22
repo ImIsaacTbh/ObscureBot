@@ -1,7 +1,10 @@
 ﻿using Discord;
+using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Fergun.Interactive;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Obscure.API;
 using System.Text;
 using RequireUserPermissionAttribute = Discord.Interactions.RequireUserPermissionAttribute;
 
@@ -13,11 +16,12 @@ namespace Obscure.Commands
         private InteractionHandler _handler;
         private readonly DiscordSocketClient _client;
 
-
-        public Administration(InteractionHandler handler, DiscordSocketClient client)
+        public readonly InteractiveService _interactive;
+        public Administration(InteractionHandler handler, DiscordSocketClient client, InteractiveService interactive)
         {
             _handler = handler;
             _client = client;
+            _interactive = interactive; 
         }
         public class key
         {
@@ -168,6 +172,86 @@ namespace Obscure.Commands
         {
             Program.guilds.GetGuild(Context.Guild.Id).config.levelToggle = !Program.guilds.GetGuild(Context.Guild.Id).config.levelToggle;
             await RespondAsync("Success", ephemeral: true);
+        }
+
+        public string list = "abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        public char GetRandomCharacter(string text, Random rng)
+        {
+            int index = rng.Next(text.Length);
+            return text[index];
+        }
+
+        [SlashCommand("verifyfor", "Verify or unverify other users")]
+        [RequireUserPermission(GuildPermission.Administrator)]
+        public async Task verifyothers(string id, bool truefalse)
+        {
+            ulong.TryParse(id, out var value);
+            int isrole = -1;
+            if (Context.Guild.GetRole(value) != null) { isrole = 1; }
+            else if (Context.Guild.GetUser(value) != null) { isrole = 2; }
+            else if (Context.Guild.GetUser(value) == null && Context.Guild.GetRole(value) == null) { isrole = 0; }
+            else { isrole = 0; }
+            Console.WriteLine(isrole);
+            if (isrole == 0) { Context.Interaction.RespondAsync("Not a valid ID", ephemeral: true); return;}
+            else if (isrole == 1)
+            {
+                foreach (IUser user in Context.Guild.GetRole(value).Members)
+                {
+                    var p = Program.guilds.GetGuild(Context.Guild.Id).GetUser(user.Id);
+                    p.profile.isVerified = truefalse;
+
+                }
+                await RespondAsync($"Doned", ephemeral: true);
+            }
+            else if (isrole == 2)
+            {
+                var p = Program.guilds.GetGuild(Context.Guild.Id).GetUser(value);
+                p.profile.isVerified = truefalse;
+                await RespondAsync("Doned", ephemeral: true);
+            }
+
+        }
+
+
+        [SlashCommand("verify", "Recieve a captcha test to verify yourself")]
+        public async Task captchamoment()
+        {
+            var p = Program.guilds.GetGuild(Context.Guild.Id).GetUser(Context.User.Id);
+            var g = Context.Guild;
+            string captcha = "";
+            var rnd = new Random();
+            for (int i = 0; i < 5; i++)
+            {
+                captcha += GetRandomCharacter(list, rnd);
+            }
+            try
+            {
+                IMessageChannel dm = await Context.User.CreateDMChannelAsync();
+                await dm.SendMessageAsync($"Please reply with the following string to prove you are not a robot: `{captcha}` \nThis captcha will expire in 5 minutes from now if you do not respond!");
+                await Context.Interaction.DeferAsync();
+            captcha:
+                var result = await _interactive.NextMessageAsync(x => x.Channel.Id == dm.Id, timeout: TimeSpan.FromSeconds(300));
+                if (result.Value.Content.Contains(captcha))
+                {
+                    Console.WriteLine("Correct");
+                    await dm.SendMessageAsync("Verified!");
+                    p.profile.isVerified = true;
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine("Balls");
+                    await dm.SendMessageAsync("This is incorrect");
+                    goto captcha;
+                }
+                await dm.SendMessageAsync("Time ran out, please use the captcha command to request a new captcha");
+            }
+            catch (Exception ex)
+            {
+                await RespondAsync("Your dms are disabled, please open them to allow the bot to dm you for verification.");
+                return;
+            }
+            await Context.Interaction.DeferAsync();
         }
 
         [SlashCommand("refreshdata", "Writes to all data files")]

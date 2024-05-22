@@ -22,4 +22,8 @@
     <PackageReference Include="YamlDotNet" Version="15.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="CaptchaSystem\" />
+  </ItemGroup>
+
 </Project>

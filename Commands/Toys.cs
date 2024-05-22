@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
 using RequireUserPermissionAttribute = Discord.Interactions.RequireUserPermissionAttribute;
@@ -6,6 +6,7 @@ using Color = System.Drawing.Color;
 using System.Text.RegularExpressions;
 using System.Text.Json;
 using Newtonsoft.Json;
+using Microsoft.VisualBasic;
 
 namespace Obscure.Commands
 {
@@ -15,11 +16,11 @@ namespace Obscure.Commands
         private InteractionHandler _handler;
         private readonly DiscordSocketClient _client;
 
-
         public Toys(InteractionHandler handler, DiscordSocketClient client)
         {
             _handler = handler;
             _client = client;
+
         }
         public class key
         {
@@ -60,6 +61,8 @@ namespace Obscure.Commands
             }
             return Color.FromArgb(rgb[0], rgb[1], rgb[2]);
         }
+
+
 
         [SlashCommand("randomcolor", "Generate a random color")]
         [RequireUserPermission(GuildPermission.UseApplicationCommands)]
