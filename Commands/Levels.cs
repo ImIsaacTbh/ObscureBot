@@ -49,7 +49,8 @@ namespace Obscure.Commands
         public enum leaderboard
         {
             Experience,
-            Pickles
+            Pickles,
+            Punishments
         }
 
         [SlashCommand("leaderboard", "Display server's leaderboard")]
@@ -95,6 +96,27 @@ namespace Obscure.Commands
                         embed.AddField($"#{i + 1} - {p.profile.username} ***(User no longer in server)***", $"**{p.profile.currency + p.profile.bank}**pickles", false);
                     }
                     
+                }
+                embed.WithFooter("Obscūrus • Team Unity Development");
+                embed.WithCurrentTimestamp();
+            }
+            else if (option == leaderboard.Punishments)
+            {
+                enums.User[] people = Program.guilds.GetGuild(Context.Guild.Id).users.ToArray().OrderBy(x => x.punishments.criminalRecord.Count()).Reverse().ToArray();
+
+                if (top > people.Length || top > 25) { await RespondAsync("Fuck off that's too many!", ephemeral: true); return; }
+                for (int i = 0; i < top; i++)
+                {
+                    var p = people[i];
+                    if (Context.Guild.GetUser(p.profile.id) != null)
+                    {
+                        embed.AddField($"#{i + 1} - {Context.Guild.GetUser(p.profile.id).GlobalName} *({p.profile.username})*", $"**{p.punishments.criminalRecord.Count}**Punishments", false);
+                    }
+                    else
+                    {
+                        embed.AddField($"#{i + 1} - {p.profile.username} ***(User no longer in server)***", $"**{p.punishments.criminalRecord.Count}**Punishments", false);
+                    }
+
                 }
                 embed.WithFooter("Obscūrus • Team Unity Development");
                 embed.WithCurrentTimestamp();
