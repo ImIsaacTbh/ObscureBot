@@ -8,8 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="CaptchaSystem\**" />
     <Compile Remove="Updated files for merge\**" />
+    <EmbeddedResource Remove="CaptchaSystem\**" />
     <EmbeddedResource Remove="Updated files for merge\**" />
+    <None Remove="CaptchaSystem\**" />
     <None Remove="Updated files for merge\**" />
   </ItemGroup>
 
@@ -20,10 +23,6 @@
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageReference Include="YamlDotNet" Version="15.1.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="CaptchaSystem\" />
   </ItemGroup>
 
 </Project>

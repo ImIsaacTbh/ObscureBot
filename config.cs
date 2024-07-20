@@ -74,7 +74,6 @@ namespace Obscure
                         try
                         {
                             p.startingHeist = false;
-                            Console.WriteLine("Thing done lmao kevin sucks");
                         }
                         catch (Exception ex)
                         {
@@ -82,10 +81,10 @@ namespace Obscure
                         }
                         p.heistInProgress = false;
                         gtemp.users.Add(new enums.User() { profile = p, punishments = poo });
-                        Console.WriteLine($"Grabbed user : {p.username} from storage");
+                        Console.WriteLine($"Fetched user: {p.username} from storage");
                         i++;
                     }
-                    Console.WriteLine("Getting new users");
+                    Console.WriteLine("Scanning for new users");
                     foreach(IUser u in await g.GetUsersAsync())
                     {
                         if (gtemp.users.FirstOrDefault(x => x.profile.id == u.Id) != null) continue;
@@ -99,12 +98,12 @@ namespace Obscure
                         await File.WriteAllTextAsync($"{path}{g.Id}\\{u.Id}\\storage.yaml", rawP);
                         //File.Create($"{path}{g.Id}\\{u.Id}\\punishments.yaml");
                         await File.WriteAllTextAsync($"{path}{g.Id}\\{u.Id}\\punishments.yaml", rawPu);
-                        Console.WriteLine($"Grabbed user : {u.Username} from discord");
+                        Console.WriteLine($"Fetched new user : {u.Username} from discord");
                         i++;
                     }
                     Program.guilds.Add(gtemp);
                 }
-                Console.WriteLine($"Successfully grabbed {i} users");
+                Console.WriteLine($"Successfully fetched {i} total users");
             }
         }
 
@@ -114,7 +113,7 @@ namespace Obscure
             {
                 enums.Guild g = Program.guilds.guilds.FirstOrDefault(x => x.id == Ig.Id);
                 if (g == null) return;
-                string RawGuildConfig = _serializer.Serialize(new enums.GuildConfig { defaultRole = g.config.defaultRole, levelToggle = g.config.levelToggle});
+                string RawGuildConfig = _serializer.Serialize(new enums.GuildConfig { defaultRole = g.config.defaultRole, levelToggle = g.config.levelToggle, auditlogChannel = g.config.auditlogChannel, announcementChannel = g.config.announcementChannel, auditlogToggle = g.config.auditlogToggle, blacklistedChannels = g.config.blacklistedChannels, starboardChannel = g.config.starboardChannel, starboardToggle = g.config.starboardToggle });
                 await File.WriteAllTextAsync($"{path}{g.id}\\config.yaml", RawGuildConfig);
                 foreach (enums.User u in g.users)
                 {
