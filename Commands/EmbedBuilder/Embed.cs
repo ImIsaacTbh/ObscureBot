@@ -14,6 +14,7 @@ namespace Obscura.Commands.EmbedBuilder
         public System.Drawing.Color Color { get; set; }
         public List<Field> Fields { get; set; } = new List<Field>();
         public string Footer { get; set; } = "Obscūrus • Team Unity Development";
+        public string FooterImageURL { get; set; }
         public string ImageURL { get; set; }
         public bool ShowTimestamp { get; set; } = true;
         public ulong ChannelId { get; set; }

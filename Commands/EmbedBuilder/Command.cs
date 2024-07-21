@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
-using Fergun.Interactive;
 using Obscure;
 
 namespace Obscura.Commands.EmbedBuilder
@@ -19,15 +18,10 @@ namespace Obscura.Commands.EmbedBuilder
         private readonly DiscordSocketClient _client;
 
 
-
-
-        private readonly InteractiveService _interactive;
-
-        public Command(InteractionHandler handler, DiscordSocketClient client, InteractiveService interactive)
+        public Command(InteractionHandler handler, DiscordSocketClient client)
         {
             _handler = handler;
             _client = client;
-            _interactive = interactive;
         }
 
         public static List<EmbedBuilderData> embedBuilders = new List<EmbedBuilderData>();
@@ -65,15 +59,18 @@ namespace Obscura.Commands.EmbedBuilder
 
             var builder = new ComponentBuilder();
             builder.WithButton($"Title", customId: $"embed:title_{embedID}", ButtonStyle.Primary);
-            builder.WithButton($"Color", customId: $"embed:color_{embedID}", ButtonStyle.Primary);
-            builder.WithButton("Channel", customId: $"embed:channel_{embedID}", ButtonStyle.Primary);
-            builder.WithButton("Image", customId: $"embed:image_{embedID}", ButtonStyle.Primary);
+            builder.WithButton($"Description", customId: $"embed:description_{embedID}", ButtonStyle.Primary);
+            builder.WithButton($"Thumbnail", customId: $"embed:thumbnail_{embedID}", ButtonStyle.Secondary);
+            builder.WithButton($"Color", customId: $"embed:color_{embedID}", ButtonStyle.Secondary);
+            builder.WithButton("Channel", customId: $"embed:channel_{embedID}", ButtonStyle.Secondary);
+            builder.WithButton("Image", customId: $"embed:image_{embedID}", ButtonStyle.Secondary);
             for (int i = 0; i < numberOfFields; i++)
             {
-                builder.WithButton($"Field {i + 1}", customId: $"embed:field_{embedID}_{i}", ButtonStyle.Secondary);
+                builder.WithButton($"Field {i + 1}", customId: $"embed:field_{embedID}_{i}", ButtonStyle.Link);
             }
             builder.WithButton("Send", customId: $"embed:send_{embedID}", ButtonStyle.Danger);
             await RespondAsync(embed: e.Build(), components: builder.Build());
+
         }
 
     }

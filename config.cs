@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
@@ -38,7 +38,7 @@ namespace Obscure
                 int i = 0;
                 if (dirs.FirstOrDefault(x => x.Contains(g.Id.ToString())) == null)
                 {
-                    enums.Guild gtemp = new enums.Guild() { users = new List<enums.User>(), config = new enums.GuildConfig() { defaultRole = 0, levelToggle = false }, id = g.Id };
+                    enums.Guild gtemp = new enums.Guild() { users = new List<enums.User>(), config = new enums.GuildConfig() { defaultRole = 0, levelToggle = false, starboardToggle = false, starboardChannel = 0, blacklistedChannels = new List<ulong>(), auditlogToggle = false, auditlogChannel = 0, announcementChannel = 0 }, id = g.Id };
                     Directory.CreateDirectory($"{path}{g.Id}");
                     string rawCFG = _serializer.Serialize(new enums.GuildConfig() { defaultRole = 0, levelToggle = false});
                     await File.WriteAllTextAsync($"{path}{g.Id}\\config.yaml", rawCFG);

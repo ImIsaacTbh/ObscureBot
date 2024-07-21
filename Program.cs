@@ -66,12 +66,21 @@ namespace Obscure
             client.MessageReceived += OnMessageRecieved;
             client.UserJoined += OnUserJoinedGuild;
             client.UserLeft += OnUserLeftGuild;
+            //client.ReactionAdded += OnReactionAdded;
             while (!kill)
             {
                 await Task.Delay(1);
             }
 
         }
+
+        //private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> cacheable1, Cacheable<IMessageChannel, ulong> cacheable2, SocketReaction reaction)
+        //{
+        //    if (cacheable1.Value.Reactions)
+        //    {
+
+        //    }
+        //}
 
         private async Task Client_Ready()
         {
@@ -131,22 +140,22 @@ namespace Obscure
                     {
                         return;
                     }
-                    if (!Program.guilds.GetGuild((msg.Channel as SocketGuildChannel).Guild.Id).GetUser(msg.Author.Id).profile.isVerified)
-                    {
-                        Console.WriteLine($"User: {msg.Author.Username} is not verified");
-                        try
-                        {
-                            await (msg.Author as IGuildUser).SetTimeOutAsync(TimeSpan.FromSeconds(10));
-                        }
+                    //if (!Program.guilds.GetGuild((msg.Channel as SocketGuildChannel).Guild.Id).GetUser(msg.Author.Id).profile.isVerified)
+                    //{
+                    //    Console.WriteLine($"User: {msg.Author.Username} is not verified");
+                    //    try
+                    //    {
+                    //        await (msg.Author as IGuildUser).SetTimeOutAsync(TimeSpan.FromSeconds(10));
+                    //    }
 
-                        catch { }
-                        await msg.DeleteAsync();
-                        var warning = await msg.Channel.SendMessageAsync($"{msg.Author.Mention} you are not verified. please use /verify to talk in this server");
-                        await Task.Delay(5000);
+                    //    catch { }
+                    //    await msg.DeleteAsync();
+                    //    var warning = await msg.Channel.SendMessageAsync($"{msg.Author.Mention} you are not verified. please use /verify to talk in this server");
+                    //    await Task.Delay(5000);
 
-                        await warning.DeleteAsync();
-                        return;
-                    }
+                    //    await warning.DeleteAsync();
+                    //    return;
+                    //}
                     SocketGuild g = (msg.Channel as SocketGuildChannel).Guild;
                     if (Program.guilds.GetGuild(g.Id).config.levelToggle == false) { return; }
 
