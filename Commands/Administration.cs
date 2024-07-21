@@ -5,6 +5,7 @@ using Discord.WebSocket;
 using Fergun.Interactive;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Obscure.API;
+using System.Data;
 using System.Text;
 using RequireUserPermissionAttribute = Discord.Interactions.RequireUserPermissionAttribute;
 
@@ -56,20 +57,6 @@ namespace Obscure.Commands
 
         }
 
-        [SlashCommand("eval", "Super top secret ;)")]
-        public async Task eval(string args)
-        {
-            if (Context.User.Id != 343102736083976203 && Context.User.Id != 816685888058687541) { await Context.Channel.SendMessageAsync($"{Context.User.Mention} TRIED TO USE THE EVAL COMMAND <@343102736083976203> <@816685888058687541>"); await RespondAsync("Lmao fuck right off", ephemeral: true); return; }
-
-            try
-            {
-                var result = await CSharpScript.EvaluateAsync(args);
-                await RespondAsync(result.ToString(), ephemeral: false);
-            }
-            catch (Exception ex) { await RespondAsync("That's not valid code :(", ephemeral: true); return; }
-
-
-        }
         
 
         [SlashCommand("users", "See how many users are in a role")]
@@ -156,6 +143,15 @@ namespace Obscure.Commands
 
             if (roles.Count() % 3 != 0) { embed.AddField($"⠀", $"⠀", true); }
             await RespondAsync(embed: embed.Build());
+        }
+
+        [SlashCommand("setlogchannel", "Sets the server's audit log channel")]
+        [RequireUserPermission(GuildPermission.Administrator)]
+
+        public async Task setrole(IGuildChannel channel)
+        {
+            Program.guilds.GetGuild(Context.Guild.Id).config.auditlogChannel = channel.Id;
+            await RespondAsync($"Set audit log channel to <#{channel.Id}>", ephemeral: true);
         }
 
         [SlashCommand("setdefaultrole", "Sets the server's auto role")]

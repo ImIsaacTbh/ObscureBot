@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Fergun.Interactive;
@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 using Obscure.API;
+using Obscura;
 
 namespace Obscure
 {
@@ -16,12 +17,14 @@ namespace Obscure
         private DiscordSocketClient _client;
         private readonly DiscordSocketConfig _socketConfig = new()
         {
-            GatewayIntents = GatewayIntents.All | GatewayIntents.GuildMembers,
+            GatewayIntents = GatewayIntents.All | GatewayIntents.GuildMembers | GatewayIntents.MessageContent,
             AlwaysDownloadUsers = true,
+            MessageCacheSize = 1024,
+            
         };
         public static bool kill;
         public static enums.Guilds guilds = new enums.Guilds() { guilds = new List<enums.Guild>() };
-
+        public static AuditLog auditlog = null;
         public Program()
         {
             _configuration = new ConfigurationBuilder()
@@ -34,6 +37,7 @@ namespace Obscure
                 .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
                 .AddSingleton<InteractionHandler>()
                 .AddSingleton<InteractiveService>()
+                .AddSingleton<AuditLog>()
                 .BuildServiceProvider();
 
         }
@@ -66,6 +70,11 @@ namespace Obscure
             client.MessageReceived += OnMessageRecieved;
             client.UserJoined += OnUserJoinedGuild;
             client.UserLeft += OnUserLeftGuild;
+            client.MessageDeleted += auditlog.MessageDeleted;
+            client.MessageUpdated += auditlog.MessageUpdated;
+            client.UserJoined += auditlog.UserJoined;
+            client.UserLeft += auditlog.UserLeft;
+            client.UserVoiceStateUpdated += auditlog.UserVoiceStateUpdated;
             //client.ReactionAdded += OnReactionAdded;
             while (!kill)
             {
@@ -100,6 +109,7 @@ namespace Obscure
             stuff.Start();
             await _client.SetStatusAsync(UserStatus.DoNotDisturb);
             await _client.SetGameAsync("Obscurities", type: ActivityType.Listening);
+
         }
 
         private async Task LogAsync(LogMessage message)
@@ -129,6 +139,7 @@ namespace Obscure
 
         private async Task OnMessageRecieved(SocketMessage msg)
         {
+ 
             try
             {
                 if (msg.Author.IsBot||msg.Content == null||msg.Type == MessageType.GuildMemberJoin||msg.Type == MessageType.UserPremiumGuildSubscription)
