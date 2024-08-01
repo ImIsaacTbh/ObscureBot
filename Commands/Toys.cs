@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Text.Json;
 using Newtonsoft.Json;
 using Microsoft.VisualBasic;
+using Discord.Commands;
 
 namespace Obscure.Commands
 {

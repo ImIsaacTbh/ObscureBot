@@ -208,19 +208,18 @@ public class Moderation : InteractionModuleBase
 	[RequireUserPermission(GuildPermission.ManageMessages)]
 	public async Task purge(int amount)
 	{
-		ITextChannel cnl = (ITextChannel)base.Context.Guild.GetChannelAsync(base.Context.Channel.Id);
-		cnl.GetMessagesAsync(amount);
-		await cnl.DeleteMessagesAsync(await cnl.GetMessagesAsync(amount).FlattenAsync());
+		var msgs = await Context.Channel.GetMessagesAsync(amount).FlattenAsync();
+		await ((ITextChannel)Context.Channel).DeleteMessagesAsync(msgs);
 		new EmbedBuilder().WithTitle("Messages Deleted").WithDescription($"<@{base.Context.Interaction.User.Id}> has deleted **{amount}** messages in <#{base.Context.Channel.Id}> \n\n<t:{DateTimeOffset.Now.ToUnixTimeSeconds()}:F>").WithColor(Color.Red)
 			.WithThumbnailUrl("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Hammer-keyboard-2.svg/1990px-Hammer-keyboard-2.svg.png");
 	}
 
-	[SlashCommand("setlogchannel", "Sets the log channel for the server.", false, RunMode.Default)]
-	[RequireUserPermission(GuildPermission.ManageChannels)]
-	public async Task setLogChannel(ITextChannel channel)
-	{
-        Program.guilds.GetGuild(base.Context.Guild.Id).config.auditlogChannel = channel.Id;
-        new EmbedBuilder().WithTitle("Log Channel Set").WithDescription($"<@{base.Context.Interaction.User.Id}> has set the log channel to <#{channel.Id}>").WithColor(Color.Red)
-            .WithThumbnailUrl("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Hammer-keyboard-2.svg/1990px-Hammer-keyboard-2.svg.png");
-    }
+	//[SlashCommand("setlogchannel", "Sets the log channel for the server.", false, RunMode.Default)]
+	//[RequireUserPermission(GuildPermission.ManageChannels)]
+	//public async Task setLogChannel(ITextChannel channel)
+	//{
+ //       Program.guilds.GetGuild(base.Context.Guild.Id).config.auditlogChannel = channel.Id;
+ //       new EmbedBuilder().WithTitle("Log Channel Set").WithDescription($"<@{base.Context.Interaction.User.Id}> has set the log channel to <#{channel.Id}>").WithColor(Color.Red)
+ //           .WithThumbnailUrl("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Hammer-keyboard-2.svg/1990px-Hammer-keyboard-2.svg.png");
+ //   }
 }

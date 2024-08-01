@@ -68,21 +68,24 @@ namespace Obscure
                     gtemp.id = g.Id;
                     foreach(string d in Directory.EnumerateDirectories($"{path}{g.Id}"))
                     {
-                        enums.Profile p = _deserializer.Deserialize<enums.Profile>(await File.ReadAllTextAsync($"{d}\\storage.yaml"));
-                        enums.Punishments poo = _deserializer.Deserialize<enums.Punishments>(await File.ReadAllTextAsync($"{d}\\punishments.yaml"));
-                        p.robberyInProgress = false;
-                        try
+                        if (d != null)
                         {
-                            p.startingHeist = false;
+                            enums.Profile p = _deserializer.Deserialize<enums.Profile>(await File.ReadAllTextAsync($"{d}\\storage.yaml"));
+                            enums.Punishments poo = _deserializer.Deserialize<enums.Punishments>(await File.ReadAllTextAsync($"{d}\\punishments.yaml"));
+                            p.robberyInProgress = false;
+                            try
+                            {
+                                p.startingHeist = false;
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.ToString());
+                            }
+                            p.heistInProgress = false;
+                            gtemp.users.Add(new enums.User() { profile = p, punishments = poo });
+                            Console.WriteLine($"Fetched user: {p.username} from storage");
+                            i++;
                         }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex.ToString());
-                        }
-                        p.heistInProgress = false;
-                        gtemp.users.Add(new enums.User() { profile = p, punishments = poo });
-                        Console.WriteLine($"Fetched user: {p.username} from storage");
-                        i++;
                     }
                     Console.WriteLine("Scanning for new users");
                     foreach(IUser u in await g.GetUsersAsync())

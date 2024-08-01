@@ -19,7 +19,7 @@ namespace Obscure
         {
             GatewayIntents = GatewayIntents.All | GatewayIntents.GuildMembers | GatewayIntents.MessageContent,
             AlwaysDownloadUsers = true,
-            MessageCacheSize = 1024,
+            MessageCacheSize = 2048,
             
         };
         public static bool kill;
@@ -75,7 +75,7 @@ namespace Obscure
             client.UserJoined += auditlog.UserJoined;
             client.UserLeft += auditlog.UserLeft;
             client.UserVoiceStateUpdated += auditlog.UserVoiceStateUpdated;
-            //client.ReactionAdded += OnReactionAdded;
+            client.ReactionAdded += OnReactionAdded;
             while (!kill)
             {
                 await Task.Delay(1);
@@ -83,13 +83,21 @@ namespace Obscure
 
         }
 
-        //private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> cacheable1, Cacheable<IMessageChannel, ulong> cacheable2, SocketReaction reaction)
-        //{
-        //    if (cacheable1.Value.Reactions)
-        //    {
-
-        //    }
-        //}
+        private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> cacheable1, Cacheable<IMessageChannel, ulong> cacheable2, SocketReaction reaction)
+        {
+            if (cacheable1.Value.Reactions.FirstOrDefault(x => x.Key.Name == reaction.Emote.Name).Value.ReactionCount > 2)
+            {
+                if(Guild.GetGuild(((IGuildChannel)cacheable2.Value).GuildId) != null)
+                {
+                    var guildConfig = Guild.GetGuild(((IGuildChannel)cacheable2.Value).GuildId).config;
+                    if(guildConfig.starboardToggle)
+                    {
+                        await _client.GetGuild(((IGuildChannel)cacheable2.Value).GuildId).GetTextChannel(guildConfig.starboardChannel).SendMessageAsync();
+                    }
+                }
+            }
+            await Task.CompletedTask;
+        }
 
         private async Task Client_Ready()
         {
@@ -109,6 +117,13 @@ namespace Obscure
             stuff.Start();
             await _client.SetStatusAsync(UserStatus.DoNotDisturb);
             await _client.SetGameAsync("Obscurities", type: ActivityType.Listening);
+            //foreach(SocketGuild g in _client.Guilds)
+            //{
+            //    foreach(ISocketMessageChannel c in g.Channels)
+            //    {
+            //        c.GetMessagesAsync(100, CacheMode.AllowDownload);
+            //    }
+            //}
 
         }
 
@@ -151,6 +166,7 @@ namespace Obscure
                     {
                         return;
                     }
+                    else if (msg.Channel.Id == 1265596627234590720) Spot.Trigger(msg);
                     //if (!Program.guilds.GetGuild((msg.Channel as SocketGuildChannel).Guild.Id).GetUser(msg.Author.Id).profile.isVerified)
                     //{
                     //    Console.WriteLine($"User: {msg.Author.Username} is not verified");
@@ -201,13 +217,14 @@ namespace Obscure
                     res += (5 * (i ^ 2) + 50 * i + 100);
                 }
 
-                var embed = new EmbedBuilder()
-                    .WithDescription($"Congrats {msg.Author.Mention}! You leveled up to level {newlevel} and earned *1000*pickles!\nTotal Messages Send: **{guilds.GetGuild(g.Id).GetUser(msg.Author.Id).profile.totalRecordedMessages}**\nTotal XP: **{guilds.GetGuild(g.Id).GetUser(msg.Author.Id).profile.exp}**xp\n Level **{newlevel + 1}** Requirement: {res}\n")
-                    .WithFooter($"You are {(ulong)res - u.profile.exp}xp away from level {newlevel + 1}! \nObscūrus • Team Unity Development")
-                    .WithCurrentTimestamp()
-                    .WithThumbnailUrl(@"https://images-ext-2.discordapp.net/external/tNJAAj1zNcCC76NWawahfu9_EjfXAWBl5wyJD0f4Ots/https/upload.wikimedia.org/wikipedia/commons/thumb/2/24/Stonks_emoji.svg/2425px-Stonks_emoji.svg.png?format=webp&quality=lossless&width=794&height=671").Build();
+
+                //var embed = new EmbedBuilder()
+                //    .WithDescription($"Congrats {msg.Author.Mention}! You leveled up to level {newlevel} and earned *1000*pickles!\nTotal Messages Send: **{guilds.GetGuild(g.Id).GetUser(msg.Author.Id).profile.totalRecordedMessages}**\nTotal XP: **{guilds.GetGuild(g.Id).GetUser(msg.Author.Id).profile.exp}**xp\n Level **{newlevel + 1}** Requirement: {res}\n")
+                //    .WithFooter($"You are {(ulong)res - u.profile.exp}xp away from level {newlevel + 1}! \nObscūrus • Team Unity Development")
+                //    .WithCurrentTimestamp()
+                //    .WithThumbnailUrl(@"https://images-ext-2.discordapp.net/external/tNJAAj1zNcCC76NWawahfu9_EjfXAWBl5wyJD0f4Ots/https/upload.wikimedia.org/wikipedia/commons/thumb/2/24/Stonks_emoji.svg/2425px-Stonks_emoji.svg.png?format=webp&quality=lossless&width=794&height=671").Build();
                     u.profile.currency += 1000;
-                await msg.Channel.SendMessageAsync(embed: embed);
+                //await msg.Channel.SendMessageAsync(embed: embed);
             }
         }
     }
