@@ -53,6 +53,8 @@ namespace Obscura
                 embed.Description = "Message Deleted";
                 embed.ThumbnailUrl = msg.Author.GetAvatarUrl();
                 embed.AddField($"Message: ", $"{msg.Content}", false);
+                embed.AddField($"Author: ", $"{msg.Author.Username}", false);
+                embed.AddField($"Message Link: ", $"{msg.GetJumpUrl()}", false);
                 embed.WithFooter("Obscūrus • Team Unity Development");
                 embed.WithCurrentTimestamp();
                 await logChannel.SendMessageAsync(embed: embed.Build());
@@ -76,6 +78,8 @@ namespace Obscura
             embed.ThumbnailUrl = oldmsg.Value.Author.GetAvatarUrl();
             embed.AddField($"Original Message: ", $"{oldmsg.Value.Content}", false);
             embed.AddField($"Updated Message: ", $"{newmsg.Content}", false);
+            embed.AddField($"Author: ", $"{oldmsg.Value.Author.Username}", false);
+            embed.AddField($"Message Link: ", $"{oldmsg.Value.GetJumpUrl()}", false);
             embed.WithFooter("Obscūrus • Team Unity Development");
             embed.WithCurrentTimestamp();
             await logChannel.SendMessageAsync(embed: embed.Build());
@@ -151,7 +155,7 @@ namespace Obscura
 
 
             }
-            if (after.VoiceChannel != null && before.VoiceChannel != null)
+            if (after.VoiceChannel != null && before.VoiceChannel != null && after.VoiceChannel != before.VoiceChannel)
             {
 
                 embed.AddField($"Moved channels", $"Previous Channel: <#{before.VoiceChannel.Id}> \nNew Channel: <#{after.VoiceChannel.Id}>", true);
