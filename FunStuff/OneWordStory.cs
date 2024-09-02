@@ -1,12 +1,10 @@
-﻿using AutoGen.Core;
-using Discord;
+﻿using Discord;
 using Discord.WebSocket;
 using Obscure;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Net.Http.Json;
+using Newtonsoft.Json;
+using Azure;
+using System.Net;
 
 namespace Obscura.FunStuff
 {
@@ -18,23 +16,47 @@ namespace Obscura.FunStuff
         }
         private async static Task OnMessageRecieved(SocketMessage msg)
         {
-            Console.WriteLine("A");
             var guild = ((SocketGuildChannel)msg.Channel).Guild;
             ulong? channel = Program.guilds.GetGuild(guild.Id).config.onewordstorychannel;
             if (msg != null && channel != null && msg.Channel.Id == channel)
             {
-                Console.WriteLine("B");
-                var LastMessage = msg.Channel.GetMessagesAsync(1).FlattenAsync().Result.FirstOrDefault() ?? null;
+                var LastMessage = msg.Channel.GetMessagesAsync(2).FlattenAsync().Result.LastOrDefault() ?? null;
+                await Task.Delay(1);
                 if (LastMessage.Author == msg.Author)
                 {
-                    Console.WriteLine("C");
                     await msg.DeleteAsync();
                     return;
                 }
-                else { return; }
+                else
+                {
+                    if (!await CheckWord(msg.Content))
+                    {
+                        await msg.DeleteAsync();
+                        return;
+                    }
+                }
             }
             else { return; }
         }
 
+        private static async Task<bool> CheckWord(string word)
+        {
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create($"https://www.urbandictionary.com/define.php?term={word}");
+            HttpWebResponse response;
+            try
+            {
+                response = (HttpWebResponse)await req.GetResponseAsync();
+            }catch(WebException e)
+            {
+                return false;
+            }
+
+            if(response.StatusCode != HttpStatusCode.NotFound)
+            {
+                return true;
+            }
+            else
+                return false;
+        }
     }
 }
