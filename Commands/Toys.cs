@@ -8,6 +8,8 @@ using System.Text.Json;
 using Newtonsoft.Json;
 using Microsoft.VisualBasic;
 using Discord.Commands;
+using System.Net.Http.Json;
+using Obscura.External;
 
 namespace Obscure.Commands
 {
@@ -132,6 +134,86 @@ namespace Obscure.Commands
         {
             public string Square { get; set; }
             public string Gradient { get; set; }
+        }
+
+        [SlashCommand("randomword", "Gets the definition of a random word")]
+        [RequireUserPermission(GuildPermission.UseApplicationCommands)]
+        public async Task randWord()
+        {
+            using HttpClient client = new()
+            {
+                BaseAddress = new Uri($"https://api.urbandictionary.com/v0/random")
+            };
+
+            // Get Json Weather information.
+            DefineData? data = await client.GetFromJsonAsync<DefineData>("");
+            EmbedBuilder embed = new EmbedBuilder();
+            if (data != null)
+            {
+                embed.Title = $"Definition for {data.List[0].Word}";
+                embed.Description = data.List[0].Definition;
+                embed.Color = Discord.Color.Blue;
+                embed.WithFooter("Obscūrus • Team Unity Development");
+                embed.WithCurrentTimestamp();
+                await RespondAsync(embed: embed.Build());
+            }
+            else
+            {
+                embed.Title = "Error";
+                embed.Description = "Error parsing JSON response.";
+                embed.Color = Discord.Color.Red;
+                embed.WithFooter("Obscūrus • Team Unity Development");
+                embed.WithCurrentTimestamp();
+                await RespondAsync(embed: embed.Build(), ephemeral: true);
+            }
+        }
+
+        [SlashCommand("define", "searches the urban dictionary for a word")]
+        [RequireUserPermission(GuildPermission.UseApplicationCommands)]
+        public async Task define(string word, bool multiresult = false)
+        {
+            using HttpClient client = new()
+            {
+                BaseAddress = new Uri($"https://api.urbandictionary.com/v0/define?term={word}")
+            };
+
+            DefineData? data = await client.GetFromJsonAsync<DefineData>("");
+            EmbedBuilder embed = new EmbedBuilder();
+            if (data != null)
+            {
+                if(!multiresult)
+                {
+                    embed.Title = $"Definition for {data.List[0].Word}";
+                    embed.Description = data.List[0].Definition;
+                    embed.Color = Discord.Color.Blue;
+                    embed.WithFooter("Obscūrus • Team Unity Development");
+                    embed.WithCurrentTimestamp();
+                    await RespondAsync(embed: embed.Build());
+                }
+                else
+                {
+                    string desc = "";
+                    for (int i = 0; i < data.List.Length; i++)
+                    {
+                        desc += $"**{data.List[i].Word}**\n{data.List[i].Definition}\n\n";
+                    }
+                    embed.Title = $"Definitions for {data.List[0].Word}";
+                    embed.Description = desc;
+                    embed.Color = Discord.Color.Blue;
+                    embed.WithFooter("Obscūrus • Team Unity Development");
+                    embed.WithCurrentTimestamp();
+                    await RespondAsync(embed: embed.Build());
+                }
+            }
+            else
+            {
+                embed.Title = "Error";
+                embed.Description = "Error parsing JSON response.";
+                embed.Color = Discord.Color.Red;
+                embed.WithFooter("Obscūrus • Team Unity Development");
+                embed.WithCurrentTimestamp();
+                await RespondAsync(embed: embed.Build(), ephemeral: true);
+            }
         }
 
         [SlashCommand("gradient", "Generate a gradiant from a hex color")]

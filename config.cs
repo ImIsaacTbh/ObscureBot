@@ -116,7 +116,7 @@ namespace Obscure
             {
                 enums.Guild g = Program.guilds.guilds.FirstOrDefault(x => x.id == Ig.Id);
                 if (g == null) return;
-                string RawGuildConfig = _serializer.Serialize(new enums.GuildConfig { defaultRole = g.config.defaultRole, levelToggle = g.config.levelToggle, auditlogChannel = g.config.auditlogChannel, announcementChannel = g.config.announcementChannel, auditlogToggle = g.config.auditlogToggle, blacklistedChannels = g.config.blacklistedChannels, starboardChannel = g.config.starboardChannel, starboardToggle = g.config.starboardToggle });
+                string RawGuildConfig = _serializer.Serialize(new enums.GuildConfig { defaultRole = g.config.defaultRole, levelToggle = g.config.levelToggle, auditlogChannel = g.config.auditlogChannel, announcementChannel = g.config.announcementChannel, auditlogToggle = g.config.auditlogToggle, blacklistedChannels = g.config.blacklistedChannels, starboardChannel = g.config.starboardChannel, starboardToggle = g.config.starboardToggle, onewordstorychannel = g.config.onewordstorychannel });
                 await File.WriteAllTextAsync($"{path}{g.id}\\config.yaml", RawGuildConfig);
                 foreach (enums.User u in g.users)
                 {
