@@ -8,6 +8,7 @@ using System.Text.Json;
 using Obscure.API;
 using Obscura;
 using Newtonsoft.Json;
+using Obscura.FunStuff;
 
 namespace Obscure
 {
@@ -77,6 +78,8 @@ namespace Obscure
             client.UserLeft += auditlog.UserLeft;
             client.UserVoiceStateUpdated += auditlog.UserVoiceStateUpdated;
             client.ReactionAdded += OnReactionAdded;
+
+            OneWordStory.Register(client);
             while (!kill)
             {
                 await Task.Delay(1);

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Channels;
 using Discord;
 using Obscure;
 
@@ -43,6 +44,8 @@ public class enums
 		public List<User> users { get; set; }
 
 		public GuildConfig config { get; set; }
+
+
 
 		public virtual User GetUser(ulong userId)
 		{
@@ -85,7 +88,7 @@ public class enums
 		public bool auditlogToggle { get; set; }
 
 		public ulong announcementChannel { get; set; }
-
+		public ulong onewordstorychannel { get; set; }
 		public List<ulong> blacklistedChannels { get; set; } = new List<ulong>();
 
 	}
