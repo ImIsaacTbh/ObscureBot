@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 using Obscure.API;
 using Obscura;
+using Newtonsoft.Json;
 
 namespace Obscure
 {
@@ -62,7 +63,7 @@ namespace Obscure
                 .InitializeAsync();
             #region secret_shhh
             string text = await File.ReadAllTextAsync($"c:/botdata/toki.json");
-            var key = JsonSerializer.Deserialize<key>(text);
+            var key = System.Text.Json.JsonSerializer.Deserialize<key>(text);
             await _client.LoginAsync(TokenType.Bot, key.auth);
             #endregion
             await client.StartAsync();
@@ -167,6 +168,14 @@ namespace Obscure
                         return;
                     }
                     else if (msg.Channel.Id == 1265596627234590720) Spot.Trigger(msg);
+
+                    var _serializer = new Newtonsoft.Json.JsonSerializer();
+                    using (var sw = new StreamWriter("c:/botdata/latestmsg.json"))
+                        using (var jw = new JsonTextWriter(sw))
+                    {
+                        _serializer.Serialize(jw, msg);
+                    }
+
                     //if (!Program.guilds.GetGuild((msg.Channel as SocketGuildChannel).Guild.Id).GetUser(msg.Author.Id).profile.isVerified)
                     //{
                     //    Console.WriteLine($"User: {msg.Author.Username} is not verified");
@@ -218,13 +227,13 @@ namespace Obscure
                 }
 
 
-                //var embed = new EmbedBuilder()
-                //    .WithDescription($"Congrats {msg.Author.Mention}! You leveled up to level {newlevel} and earned *1000*pickles!\nTotal Messages Send: **{guilds.GetGuild(g.Id).GetUser(msg.Author.Id).profile.totalRecordedMessages}**\nTotal XP: **{guilds.GetGuild(g.Id).GetUser(msg.Author.Id).profile.exp}**xp\n Level **{newlevel + 1}** Requirement: {res}\n")
-                //    .WithFooter($"You are {(ulong)res - u.profile.exp}xp away from level {newlevel + 1}! \nObscūrus • Team Unity Development")
-                //    .WithCurrentTimestamp()
-                //    .WithThumbnailUrl(@"https://images-ext-2.discordapp.net/external/tNJAAj1zNcCC76NWawahfu9_EjfXAWBl5wyJD0f4Ots/https/upload.wikimedia.org/wikipedia/commons/thumb/2/24/Stonks_emoji.svg/2425px-Stonks_emoji.svg.png?format=webp&quality=lossless&width=794&height=671").Build();
-                    u.profile.currency += 1000;
-                //await msg.Channel.SendMessageAsync(embed: embed);
+                var embed = new EmbedBuilder()
+                    .WithDescription($"Congrats {msg.Author.Mention}! You leveled up to level {newlevel} and earned *1000*pickles!\nTotal Messages Send: **{guilds.GetGuild(g.Id).GetUser(msg.Author.Id).profile.totalRecordedMessages}**\nTotal XP: **{guilds.GetGuild(g.Id).GetUser(msg.Author.Id).profile.exp}**xp\n Level **{newlevel + 1}** Requirement: {res}\n")
+                    .WithFooter($"You are {(ulong)res - u.profile.exp}xp away from level {newlevel + 1}! \nObscūrus • Team Unity Development")
+                    .WithCurrentTimestamp()
+                    .WithThumbnailUrl(@"https://images-ext-2.discordapp.net/external/tNJAAj1zNcCC76NWawahfu9_EjfXAWBl5wyJD0f4Ots/https/upload.wikimedia.org/wikipedia/commons/thumb/2/24/Stonks_emoji.svg/2425px-Stonks_emoji.svg.png?format=webp&quality=lossless&width=794&height=671").Build();
+                u.profile.currency += 1000;
+                await msg.Channel.SendMessageAsync(embed: embed);
             }
         }
     }

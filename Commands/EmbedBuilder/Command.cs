@@ -66,7 +66,7 @@ namespace Obscura.Commands.EmbedBuilder
             builder.WithButton("Image", customId: $"embed:image_{embedID}", ButtonStyle.Secondary);
             for (int i = 0; i < numberOfFields; i++)
             {
-                builder.WithButton($"Field {i + 1}", customId: $"embed:field_{embedID}_{i}", ButtonStyle.Link);
+                builder.WithButton($"Field {i + 1}", customId: $"embed:field_{embedID}_{i}", ButtonStyle.Primary);
             }
             builder.WithButton("Send", customId: $"embed:send_{embedID}", ButtonStyle.Danger);
             await RespondAsync(embed: e.Build(), components: builder.Build());
