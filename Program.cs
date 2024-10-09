@@ -4,11 +4,12 @@ using Discord.WebSocket;
 using Fergun.Interactive;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Text.Json;
+using GScraper;
 using Obscure.API;
 using Obscura;
 using Newtonsoft.Json;
 using Obscura.FunStuff;
+using GScraper.Google;
 
 namespace Obscure
 {
@@ -43,6 +44,7 @@ namespace Obscure
                 .BuildServiceProvider();
 
         }
+
         public static void Main(string[] args)
         {
             new Program().RunAsync()
@@ -80,6 +82,7 @@ namespace Obscure
             client.ReactionAdded += OnReactionAdded;
 
             OneWordStory.Register(client);
+            ObscuraController.ControllerProgram.StartObscuraController();
             while (!kill)
             {
                 await Task.Delay(1);
@@ -119,6 +122,61 @@ namespace Obscure
                 });
             }));
             stuff.Start();
+            Thread msgOfHr = new Thread(new ThreadStart(async () =>
+            {
+                await Task.Run(async () =>
+                {
+                    while (true)
+                    {
+                        if (DateTimeOffset.UtcNow.ToUnixTimeSeconds() -
+                            (_client.GetChannelAsync(1207080636679069786).Result as IMessageChannel).GetMessagesAsync(1)
+                            .FlattenAsync().Result.First().Timestamp.ToUnixTimeSeconds() > 3600) return;
+                        using var scraper = new GoogleScraper();
+                        IEnumerable<IImageResult> images = null;
+                        string word = null;
+                        try
+                        {
+                            using HttpClient client = new HttpClient();
+                            client.DefaultRequestHeaders.Add("parse", "application/json");
+                            HttpResponseMessage response =
+                                await client.GetAsync("https://random-word-api.herokuapp.com/word");
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                string jsonResponse = await response.Content.ReadAsStringAsync();
+
+                                Console.WriteLine(jsonResponse);
+                                word = jsonResponse.Replace("[", "").Replace("\"", "").Replace("]", "");
+                            }
+
+                            Console.WriteLine(word);
+                            images = await scraper.GetImagesAsync(word);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+
+                        foreach (var image in images)
+                        {
+                            var builder = new Discord.EmbedBuilder()
+                                .WithTitle("Image of the hour!")
+                                .WithDescription($"Discuss..")
+                                .WithImageUrl(image.Url)
+                                .WithFooter("Obscūrus • Team Unity Development")
+                                .WithCurrentTimestamp();
+                            await (_client.GetChannelAsync(1207080636679069786).Result as IMessageChannel)
+                                .SendMessageAsync(embed: builder.Build());
+                            break;
+                        }
+
+                        Thread.Sleep(3600000);
+                    }
+                });
+            }));
+//#error 'RMV FOR PROD OR GAE'
+           /msgOfHr.Start();
+
             await _client.SetStatusAsync(UserStatus.DoNotDisturb);
             await _client.SetGameAsync("Obscurities", type: ActivityType.Listening);
             //foreach(SocketGuild g in _client.Guilds)

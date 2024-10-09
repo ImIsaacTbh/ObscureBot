@@ -10,6 +10,7 @@ using Discord.WebSocket;
 using Obscure.Commands;
 using Obscure;
 using Obscure.API;
+using Color = Discord.Color;
 
 public class Moderation : InteractionModuleBase
 {
@@ -58,7 +59,7 @@ public class Moderation : InteractionModuleBase
 		EmbedBuilder embedBuilder = new EmbedBuilder();
 		embedBuilder.WithTitle("Slowmode Enabled").WithDescription($"User <@{base.Context.Interaction.User.Id}> has enabled **slowmode** in <#{base.Context.Channel.Id}>. \n Time between messages: **{time}**s").WithColor(Color.Red)
 			.WithThumbnailUrl("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Hammer-keyboard-2.svg/1990px-Hammer-keyboard-2.svg.png");
-		await base.Context.Interaction.RespondAsync(null, null, isTTS: false, ephemeral: false, null, null, embedBuilder.Build());
+		await base.Context.Interaction.RespondAsync(embed: embedBuilder.Build());
 	}
 
 	[SlashCommand("ban", "Banishes a user from the plane of existence.", false, RunMode.Default)]
@@ -75,8 +76,8 @@ public class Moderation : InteractionModuleBase
 			punisher = base.Context.User.Username
 		});
 		await u.BanAsync(0, reason);
-		new EmbedBuilder().WithTitle("User Banned").WithDescription($"User <@{u.Id}> has been **banned** by <@{base.Context.User.Id}>. \nReason: `{reason}` \n<t:{DateTimeOffset.Now.ToUnixTimeSeconds()}:F>").WithColor(Color.Red)
-			.WithThumbnailUrl("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Hammer-keyboard-2.svg/1990px-Hammer-keyboard-2.svg.png");
+		await Context.Interaction.RespondAsync(embed: new EmbedBuilder().WithTitle("User Banned").WithDescription($"User <@{u.Id}> has been **banned** by <@{base.Context.User.Id}>. \nReason: `{reason}` \n<t:{DateTimeOffset.Now.ToUnixTimeSeconds()}:F>").WithColor(Color.Red)
+			.WithThumbnailUrl("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Hammer-keyboard-2.svg/1990px-Hammer-keyboard-2.svg.png").Build());
 	}
 
 	[SlashCommand("unban", "Allows a user passage to the plane of existence.", false, RunMode.Default)]
@@ -91,8 +92,8 @@ public class Moderation : InteractionModuleBase
 			return;
 		}
 		await base.Context.Guild.RemoveBanAsync(usr);
-		new EmbedBuilder().WithTitle("User Unbanned").WithDescription($"User <@{usr.Id}> has been **unbanned** by <@{base.Context.User.Id}>. \nReason: `{reason}` \n<t:{DateTimeOffset.Now.ToUnixTimeSeconds()}:F>").WithColor(Color.Red)
-			.WithThumbnailUrl("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Hammer-keyboard-2.svg/1990px-Hammer-keyboard-2.svg.png");
+		await Context.Interaction.RespondAsync(embed: new EmbedBuilder().WithTitle("User Unbanned").WithDescription($"User <@{usr.Id}> has been **unbanned** by <@{base.Context.User.Id}>. \nReason: `{reason}` \n<t:{DateTimeOffset.Now.ToUnixTimeSeconds()}:F>").WithColor(Color.Red)
+			.WithThumbnailUrl("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Hammer-keyboard-2.svg/1990px-Hammer-keyboard-2.svg.png").Build());
 	}
 
 	[SlashCommand("kick", "Kicks a user from the server.", false, RunMode.Default)]
@@ -132,7 +133,7 @@ public class Moderation : InteractionModuleBase
 		EmbedBuilder embedBuilder = new EmbedBuilder();
 		embedBuilder.WithTitle("User kicked").WithDescription($"User <@{u.Id}> has been **kicked** by <@{base.Context.User.Id}>. \nReason: `{reason}` \nIssued: <t:{DateTimeOffset.Now.ToUnixTimeSeconds()}:F>\nImmediately Reinvited: `{reinvite}`").WithColor(Color.Red)
 			.WithThumbnailUrl("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Hammer-keyboard-2.svg/1990px-Hammer-keyboard-2.svg.png");
-		await RespondAsync(null, null, isTTS: false, ephemeral: false, null, null, null, embedBuilder.Build());
+		await RespondAsync(embed: embedBuilder.Build());
 	}
 
 	[SlashCommand("mute", "Times a user out for a specified amount of time", false, RunMode.Default)]
@@ -210,8 +211,9 @@ public class Moderation : InteractionModuleBase
 	{
 		var msgs = await Context.Channel.GetMessagesAsync(amount).FlattenAsync();
 		await ((ITextChannel)Context.Channel).DeleteMessagesAsync(msgs);
-		new EmbedBuilder().WithTitle("Messages Deleted").WithDescription($"<@{base.Context.Interaction.User.Id}> has deleted **{amount}** messages in <#{base.Context.Channel.Id}> \n\n<t:{DateTimeOffset.Now.ToUnixTimeSeconds()}:F>").WithColor(Color.Red)
-			.WithThumbnailUrl("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Hammer-keyboard-2.svg/1990px-Hammer-keyboard-2.svg.png");
+		var embed = new EmbedBuilder().WithTitle("Messages Deleted").WithDescription($"Deleted **{amount}** messages in <#{base.Context.Channel.Id}> \n\n<t:{DateTimeOffset.Now.ToUnixTimeSeconds()}:F>").WithColor(Color.Red)
+			.WithThumbnailUrl("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Hammer-keyboard-2.svg/1990px-Hammer-keyboard-2.svg.png").Build();
+		await Context.Interaction.RespondAsync(embed: embed, ephemeral: true);
 	}
 
 	//[SlashCommand("setlogchannel", "Sets the log channel for the server.", false, RunMode.Default)]

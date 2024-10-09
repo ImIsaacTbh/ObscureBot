@@ -145,7 +145,6 @@ namespace Obscure.Commands
                 BaseAddress = new Uri($"https://api.urbandictionary.com/v0/random")
             };
 
-            // Get Json Weather information.
             DefineData? data = await client.GetFromJsonAsync<DefineData>("");
             EmbedBuilder embed = new EmbedBuilder();
             if (data != null)
@@ -177,7 +176,6 @@ namespace Obscure.Commands
                 BaseAddress = new Uri($"https://api.urbandictionary.com/v0/define?term={word}")
             };
 
-            // Get Json Weather information.
             DefineData? data = await client.GetFromJsonAsync<DefineData>("");
             EmbedBuilder embed = new EmbedBuilder();
             if (data != null)

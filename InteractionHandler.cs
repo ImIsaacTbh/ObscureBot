@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.Xml.Schema;
 using Obscura.Commands.EmbedBuilder;
 using System.Security.Cryptography;
+using Color = System.Drawing.Color;
 using Embed = Discord.Embed;
 
 namespace Obscure
@@ -93,7 +94,7 @@ namespace Obscure
                             Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed;
                         await ((arg.Channel as IGuildChannel).Guild.GetChannelAsync(embedData.ChannelId).Result as IMessageChannel).SendMessageAsync(embed: e);
                         await arg.DeleteOriginalResponseAsync();
-                        await arg.RespondAsync(embed: new EmbedBuilder().WithTitle("Embed Sent").WithDescription($"Embed sent to channel {embedData.ChannelId}").WithColor(Color.Green).Build());
+                        await arg.RespondAsync(embed: new EmbedBuilder().WithTitle("Embed Sent").WithDescription($"Embed sent to channel {embedData.ChannelId}").WithColor(Discord.Color.Green).Build());
                         break;
                     case "image":
                         Modal b5 = new ModalBuilder(title: $"Image", customId: $"modal:{arg.Data.CustomId}")
@@ -216,6 +217,8 @@ namespace Obscure
                             Console.WriteLine("FUCK");
                             Console.WriteLine(InteractionCommandError.UnmetPrecondition.ToString());
                             break;
+                        case InteractionCommandError.Unsuccessful:
+                            await context.Interaction.RespondAsync("Command execution unsuccessful.", ephemeral: true); break;
                         default:
                             break;
                     }
