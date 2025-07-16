@@ -26,7 +26,7 @@ namespace Obscure
 
         public static Serializer _serializer = new Serializer();
         public static Deserializer _deserializer = new Deserializer();
-        public static string path = @"C:\botdata\";
+        public static string path = Program.botDir;
         
 
         public static async Task InitStorage()
@@ -41,7 +41,7 @@ namespace Obscure
                     enums.Guild gtemp = new enums.Guild() { users = new List<enums.User>(), config = new enums.GuildConfig() { defaultRole = 0, levelToggle = false, starboardToggle = false, starboardChannel = 0, blacklistedChannels = new List<ulong>(), auditlogToggle = false, auditlogChannel = 0, announcementChannel = 0 }, id = g.Id };
                     Directory.CreateDirectory($"{path}{g.Id}");
                     string rawCFG = _serializer.Serialize(new enums.GuildConfig() { defaultRole = 0, levelToggle = false});
-                    await File.WriteAllTextAsync($"{path}{g.Id}\\config.yaml", rawCFG);
+                    await File.WriteAllTextAsync($"{path}{g.Id}/config.yaml", rawCFG);
                     foreach(IGuildUser u in await g.GetUsersAsync())
                     {
                         if (u.IsBot) continue;
@@ -49,11 +49,11 @@ namespace Obscure
                         enums.Punishments punishments = new enums.Punishments() { criminalRecord = new List<enums.Punishment>() };
                         string rawP = _serializer.Serialize(profile);
                         string rawPu = _serializer.Serialize(punishments);
-                        Directory.CreateDirectory($"{path}{g.Id}\\{u.Id}");
-                        //File.Create($"{path}{g.Id}\\{u.Id}\\storage.yaml");
-                        await File.WriteAllTextAsync($"{path}{g.Id}\\{u.Id}\\storage.yaml", rawP);
-                        //File.Create($"{path}{g.Id}\\{u.Id}\\punishments.yaml");
-                        await File.WriteAllTextAsync($"{path}{g.Id}\\{u.Id}\\punishments.yaml", rawPu);
+                        Directory.CreateDirectory($"{path}{g.Id}/{u.Id}");
+                        //File.Create($"{path}{g.Id}/{u.Id}/storage.yaml");
+                        await File.WriteAllTextAsync($"{path}{g.Id}/{u.Id}/storage.yaml", rawP);
+                        //File.Create($"{path}{g.Id}/{u.Id}/punishments.yaml");
+                        await File.WriteAllTextAsync($"{path}{g.Id}/{u.Id}/punishments.yaml", rawPu);
                         Console.WriteLine($"Grabbed user : {u.Username} from discord");
                         gtemp.users.Add(new enums.User() { profile = profile, punishments = punishments });
                         i++;
@@ -63,15 +63,15 @@ namespace Obscure
                 else
                 {
                     enums.Guild gtemp = new enums.Guild() { users = new List<enums.User>() };
-                    enums.GuildConfig guildConfig = _deserializer.Deserialize<enums.GuildConfig>(await File.ReadAllTextAsync($"{path}{g.Id}\\config.yaml"));
+                    enums.GuildConfig guildConfig = _deserializer.Deserialize<enums.GuildConfig>(await File.ReadAllTextAsync($"{path}{g.Id}/config.yaml"));
                     gtemp.config = guildConfig;
                     gtemp.id = g.Id;
                     foreach(string d in Directory.EnumerateDirectories($"{path}{g.Id}"))
                     {
                         if (d != null)
                         {
-                            enums.Profile p = _deserializer.Deserialize<enums.Profile>(await File.ReadAllTextAsync($"{d}\\storage.yaml"));
-                            enums.Punishments poo = _deserializer.Deserialize<enums.Punishments>(await File.ReadAllTextAsync($"{d}\\punishments.yaml"));
+                            enums.Profile p = _deserializer.Deserialize<enums.Profile>(await File.ReadAllTextAsync($"{d}/storage.yaml"));
+                            enums.Punishments poo = _deserializer.Deserialize<enums.Punishments>(await File.ReadAllTextAsync($"{d}/punishments.yaml"));
                             p.robberyInProgress = false;
                             try
                             {
@@ -96,11 +96,11 @@ namespace Obscure
                         enums.Punishments punishments = new enums.Punishments() { criminalRecord = new List<enums.Punishment>() };
                         string rawP = _serializer.Serialize(profile);
                         string rawPu = _serializer.Serialize(punishments);
-                        Directory.CreateDirectory($"{path}{g.Id}\\{u.Id}");
-                        //File.Create($"{path}{g.Id}\\{u.Id}\\storage.yaml");
-                        await File.WriteAllTextAsync($"{path}{g.Id}\\{u.Id}\\storage.yaml", rawP);
-                        //File.Create($"{path}{g.Id}\\{u.Id}\\punishments.yaml");
-                        await File.WriteAllTextAsync($"{path}{g.Id}\\{u.Id}\\punishments.yaml", rawPu);
+                        Directory.CreateDirectory($"{path}{g.Id}/{u.Id}");
+                        //File.Create($"{path}{g.Id}/{u.Id}/storage.yaml");
+                        await File.WriteAllTextAsync($"{path}{g.Id}/{u.Id}/storage.yaml", rawP);
+                        //File.Create($"{path}{g.Id}/{u.Id}/punishments.yaml");
+                        await File.WriteAllTextAsync($"{path}{g.Id}/{u.Id}/punishments.yaml", rawPu);
                         Console.WriteLine($"Fetched new user : {u.Username} from discord");
                         i++;
                     }
@@ -117,28 +117,28 @@ namespace Obscure
                 enums.Guild g = Program.guilds.guilds.FirstOrDefault(x => x.id == Ig.Id);
                 if (g == null) return;
                 string RawGuildConfig = _serializer.Serialize(new enums.GuildConfig { defaultRole = g.config.defaultRole, levelToggle = g.config.levelToggle, auditlogChannel = g.config.auditlogChannel, announcementChannel = g.config.announcementChannel, auditlogToggle = g.config.auditlogToggle, blacklistedChannels = g.config.blacklistedChannels, starboardChannel = g.config.starboardChannel, starboardToggle = g.config.starboardToggle, onewordstorychannel = g.config.onewordstorychannel });
-                await File.WriteAllTextAsync($"{path}{g.id}\\config.yaml", RawGuildConfig);
+                await File.WriteAllTextAsync($"{path}{g.id}/config.yaml", RawGuildConfig);
                 foreach (enums.User u in g.users)
                 {
-                    if (Directory.Exists($"{path}{g.id}\\{u.profile.id}"))
+                    if (Directory.Exists($"{path}{g.id}/{u.profile.id}"))
                     {
                         string raw = _serializer.Serialize(u.profile);
-                        await File.WriteAllTextAsync($"{path}{g.id}\\{u.profile.id}\\storage.yaml", raw);
+                        await File.WriteAllTextAsync($"{path}{g.id}/{u.profile.id}/storage.yaml", raw);
 
                         string rawPu = _serializer.Serialize(u.punishments);
-                        await File.WriteAllTextAsync($"{path}{g.id}\\{u.profile.id}\\punishments.yaml", rawPu);
+                        await File.WriteAllTextAsync($"{path}{g.id}/{u.profile.id}/punishments.yaml", rawPu);
                     }
                     else
                     {
-                        Directory.CreateDirectory($"{path}{g.id}\\{u.profile.id}");
+                        Directory.CreateDirectory($"{path}{g.id}/{u.profile.id}");
                         enums.Profile profile = new enums.Profile() { id = u.profile.id, username = u.profile.username, totalRecordedMessages = u.profile.totalRecordedMessages, level = u.profile.level, exp = u.profile.exp, currency = u.profile.currency, bank = u.profile.bank, heistInProgress = u.profile.heistInProgress, lastBankRobbery = u.profile.lastBankRobbery, lastDaily = u.profile.lastDaily, lastRobbery = u.profile.lastRobbery, lastWeekly = u.profile.lastWeekly, robberyInProgress = u.profile.robberyInProgress};
                         enums.Punishments punishments = new enums.Punishments() { criminalRecord = u.punishments.criminalRecord };
                         string rawP = _serializer.Serialize(profile);
                         string rawPu = _serializer.Serialize(punishments);
-                        //File.Create($"{path}{g.id}\\{u.profile.id}\\storage.yaml");
-                        await File.WriteAllTextAsync($"{path}{g.id}\\{u.profile.id}\\storage.yaml", rawP);
-                        //File.Create($"{path}{g.id}\\{u.profile.id}\\punishments.yaml");
-                        await File.WriteAllTextAsync($"{path}{g.id}\\{u.profile.id}\\punishments.yaml", rawPu);
+                        //File.Create($"{path}{g.id}/{u.profile.id}/storage.yaml");
+                        await File.WriteAllTextAsync($"{path}{g.id}/{u.profile.id}/storage.yaml", rawP);
+                        //File.Create($"{path}{g.id}/{u.profile.id}/punishments.yaml");
+                        await File.WriteAllTextAsync($"{path}{g.id}/{u.profile.id}/punishments.yaml", rawPu);
                     }
                 }
             }

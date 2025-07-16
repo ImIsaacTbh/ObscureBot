@@ -31,15 +31,6 @@ namespace Obscura.Commands.Google
     [RequireUserPermission(GuildPermission.UseApplicationCommands)]
     public async Task google(searchType g, string search)
     {
-            //if (g == searchType.image)
-            //{
-            //    await imageSearch.RequestImageSearch(search, Context.Interaction);
-            //}
-            //else if (g == searchType.search)
-            //{
-
-            //}
-
             if (g == searchType.image)
             {
                 using var scraper = new GoogleScraper();
@@ -58,22 +49,10 @@ namespace Obscura.Commands.Google
                 var builder = new Discord.EmbedBuilder()
                     .WithTitle("Google Image Search")
                     .WithDescription($"Here is an image of {search}")
-                    .WithImageUrl(images.First().Url)
+                    .WithImageUrl(images.OrderBy(x => Guid.NewGuid()).First().Url)
                     .WithFooter("Obscūrus • Team Unity Development")
                     .WithCurrentTimestamp();
                 await RespondAsync(embed: builder.Build());
-
-                //foreach (var image in images)
-                //{
-                //    var builder = new Discord.EmbedBuilder()
-                //        .WithTitle("Google Image Search")
-                //        .WithDescription($"Here is an image of {search}")
-                //        .WithImageUrl(image.Url)
-                //        .WithFooter("Obscūrus • Team Unity Development")
-                //        .WithCurrentTimestamp();
-                //    await RespondAsync(embed: builder.Build());
-                //    break;
-                //}
             }
     }
 }

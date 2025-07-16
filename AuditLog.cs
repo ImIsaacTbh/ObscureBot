@@ -50,9 +50,9 @@ namespace Obscura
                 Title = $"Message updated in channel: <#{channel.Value.Id}>",
             };
 
-                embed.Description = "Message Deleted";
-                embed.ThumbnailUrl = msg.Author.GetAvatarUrl();
-                embed.AddField($"Message: ", $"{msg.Content}", false);
+            embed.Description = "Message Deleted";
+            embed.ThumbnailUrl = msg.Author.GetAvatarUrl();
+            embed.AddField($"Message: ", $"{(msg.Content == "" ? "Unable to fetch message content" : msg.Content)}", false);
                 embed.AddField($"Author: ", $"{msg.Author.Username}", false);
                 embed.AddField($"Message Link: ", $"{msg.GetJumpUrl()}", false);
                 embed.WithFooter("Obscūrus • Team Unity Development");
@@ -75,9 +75,9 @@ namespace Obscura
             };
 
             embed.Description = "Message Changed";
-            embed.ThumbnailUrl = oldmsg.Value.Author.GetAvatarUrl();
-            embed.AddField($"Original Message: ", $"{oldmsg.Value.Content}", false);
-            embed.AddField($"Updated Message: ", $"{newmsg.Content}", false);
+            embed.ThumbnailUrl = newmsg.Author.GetAvatarUrl();
+            embed.AddField($"Original Message: ", $"{(oldmsg.Value.Content == "" ? "Unable to fetch message content" : oldmsg.Value.Content)}", false);
+            embed.AddField($"Updated Message: ", $"{(newmsg.Content == "" ? "Unable to fetch message content" : newmsg.Content)}", false);
             embed.AddField($"Author: ", $"{oldmsg.Value.Author.Username}", false);
             embed.AddField($"Message Link: ", $"{oldmsg.Value.GetJumpUrl()}", false);
             embed.WithFooter("Obscūrus • Team Unity Development");

@@ -30,7 +30,7 @@ namespace Obscura
         [RequireUserPermission(Discord.GuildPermission.Administrator)]
         public async Task startSpot()
         {
-            openaiapitoken = File.ReadAllText("c:/openai.txt");
+            openaiapitoken = File.ReadAllText($"{Program.botDir}openai.txt");
             var gpt35Config = new OpenAIConfig(openaiapitoken, "gpt-3.5-turbo");
 
             assistantAgent = new AssistantAgent(
@@ -57,7 +57,7 @@ namespace Obscura
             await RespondAsync("Spot got dementia again");
         }
 
-        public static void Trigger(SocketMessage msg)
+        public static void Trigger  (SocketMessage msg)
         {
             ProcessRequest(msg);
         }

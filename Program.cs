@@ -10,6 +10,7 @@ using Obscura;
 using Newtonsoft.Json;
 using Obscura.FunStuff;
 using GScraper.Google;
+using Google.Apis.Util;
 
 namespace Obscure
 {
@@ -28,8 +29,13 @@ namespace Obscure
         public static bool kill;
         public static enums.Guilds guilds = new enums.Guilds() { guilds = new List<enums.Guild>() };
         public static AuditLog auditlog = null;
+
+        public static string botDir;
+
         public Program()
         {
+            botDir = Directory.GetCurrentDirectory() + "/ObscureBot/";
+
             _configuration = new ConfigurationBuilder()
                 .Build();
 
@@ -64,9 +70,22 @@ namespace Obscure
             client.Log += LogAsync;
             await _services.GetRequiredService<InteractionHandler>()
                 .InitializeAsync();
+            key key = null;
             #region secret_shhh
-            string text = await File.ReadAllTextAsync($"c:/botdata/toki.json");
-            var key = System.Text.Json.JsonSerializer.Deserialize<key>(text);
+            try
+            {
+                string text = await File.ReadAllTextAsync($"{botDir}token.json");
+                key = System.Text.Json.JsonSerializer.Deserialize<key>(text);
+                if(key.auth == "INSERT KEY HERE" || key.auth == null || key.auth == "")
+                {
+                    throw new Exception("Key is not set. Please set the key in the token.json file");
+                }
+            }
+            catch(Exception ex)
+            {
+                File.WriteAllText(botDir + "token.json", System.Text.Json.JsonSerializer.Serialize(new key { auth = "INSERT KEY HERE"}));
+                throw new Exception("Error while parsing token file. Please make sure the file is intact");
+            }
             await _client.LoginAsync(TokenType.Bot, key.auth);
             #endregion
             await client.StartAsync();
@@ -82,7 +101,6 @@ namespace Obscure
             client.ReactionAdded += OnReactionAdded;
 
             OneWordStory.Register(client);
-            ObscuraController.ControllerProgram.StartObscuraController();
             while (!kill)
             {
                 await Task.Delay(1);
@@ -129,8 +147,8 @@ namespace Obscure
                     while (true)
                     {
                         if (DateTimeOffset.UtcNow.ToUnixTimeSeconds() -
-                            (_client.GetChannelAsync(1207080636679069786).Result as IMessageChannel).GetMessagesAsync(1)
-                            .FlattenAsync().Result.First().Timestamp.ToUnixTimeSeconds() > 3600) return;
+                            (_client.GetChannelAsync(1207080636679069786).Result as IMessageChannel).GetMessagesAsync(5)
+                            .FlattenAsync().Result.First(x => x.Author != _client.CurrentUser).Timestamp.ToUnixTimeSeconds() > 3600) return;
                         using var scraper = new GoogleScraper();
                         IEnumerable<IImageResult> images = null;
                         string word = null;
@@ -159,23 +177,27 @@ namespace Obscure
 
                         foreach (var image in images)
                         {
-                            var builder = new Discord.EmbedBuilder()
-                                .WithTitle("Image of the hour!")
-                                .WithDescription($"Discuss..")
-                                .WithImageUrl(image.Url)
-                                .WithFooter("Obscūrus • Team Unity Development")
-                                .WithCurrentTimestamp();
-                            await (_client.GetChannelAsync(1207080636679069786).Result as IMessageChannel)
-                                .SendMessageAsync(embed: builder.Build());
-                            break;
+                            Thread.Sleep(1000);
+                            if (image.Width != 0)
+                            {
+                                var builder = new Discord.EmbedBuilder()
+                                    .WithTitle("Image of the hour!")
+                                    .WithDescription($"Discuss..")
+                                    .WithImageUrl(image.Url)
+                                    .WithFooter("Obscūrus • Team Unity Development")
+                                    .WithCurrentTimestamp();
+                                await (_client.GetChannelAsync(1207080636679069786).Result as IMessageChannel)
+                                    .SendMessageAsync(embed: builder.Build());
+                                break;
+                            }
                         }
 
                         Thread.Sleep(3600000);
                     }
                 });
             }));
-//#error 'RMV FOR PROD OR GAE'
-           /msgOfHr.Start();
+            //#error 'RMV FOR PROD OR GAE'
+           //msgOfHr.Start();
 
             await _client.SetStatusAsync(UserStatus.DoNotDisturb);
             await _client.SetGameAsync("Obscurities", type: ActivityType.Listening);
@@ -186,7 +208,7 @@ namespace Obscure
             //        c.GetMessagesAsync(100, CacheMode.AllowDownload);
             //    }
             //}
-
+            Console.WriteLine("Startup Successful");
         }
 
         private async Task LogAsync(LogMessage message)
@@ -231,28 +253,12 @@ namespace Obscure
                     else if (msg.Channel.Id == 1265596627234590720) Spot.Trigger(msg);
 
                     var _serializer = new Newtonsoft.Json.JsonSerializer();
-                    using (var sw = new StreamWriter("c:/botdata/latestmsg.json"))
+                    using (var sw = new StreamWriter(botDir+"latestmsg.json"))
                         using (var jw = new JsonTextWriter(sw))
                     {
                         _serializer.Serialize(jw, msg);
                     }
 
-                    //if (!Program.guilds.GetGuild((msg.Channel as SocketGuildChannel).Guild.Id).GetUser(msg.Author.Id).profile.isVerified)
-                    //{
-                    //    Console.WriteLine($"User: {msg.Author.Username} is not verified");
-                    //    try
-                    //    {
-                    //        await (msg.Author as IGuildUser).SetTimeOutAsync(TimeSpan.FromSeconds(10));
-                    //    }
-
-                    //    catch { }
-                    //    await msg.DeleteAsync();
-                    //    var warning = await msg.Channel.SendMessageAsync($"{msg.Author.Mention} you are not verified. please use /verify to talk in this server");
-                    //    await Task.Delay(5000);
-
-                    //    await warning.DeleteAsync();
-                    //    return;
-                    //}
                     SocketGuild g = (msg.Channel as SocketGuildChannel).Guild;
                     if (Program.guilds.GetGuild(g.Id).config.levelToggle == false) { return; }
 
