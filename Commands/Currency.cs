@@ -6,6 +6,7 @@ using System.Text;
 using Fergun.Interactive;
 using Obscure.API;
 using System.Net;
+using System.Text.RegularExpressions;
 
 namespace Harmony_Utilities.Commands
 {
@@ -376,18 +377,8 @@ namespace Harmony_Utilities.Commands
             var rnd = new Random();
 
             var wclient = new WebClient();
-            var downloadedString = "";
 
-            var wordType = rnd.Next(0, 2);
-            if (wordType == 0) { downloadedString = wclient.DownloadString("http://www.wordgenerator.net/application/p.php?id=nouns&type=1&spaceflag=false"); }
-            if (wordType == 1) { downloadedString = wclient.DownloadString("http://www.wordgenerator.net/application/p.php?id=adjectives&type=1&spaceflag=false"); }
-            //if (wordType == 2) { downloadedString = wclient.DownloadString("http://www.wordgenerator.net/application/p.php?id=verbs&type=1&spaceflag=false"); }
-                // id= can be: nouns, adjectives, verbs, dictionary_words.
-            string[] words = downloadedString.Split(',');
-
-            int index = rnd.Next(0, words.Length);
-            var word = words[index].ToString();
-            Console.Write($"\n{word}\n");
+            var word = Regex.Replace(wclient.DownloadString("https://random-word-api.herokuapp.com/word"), @"[^0-9a-zA-Z]+", "");
 
             StringBuilder jumble = new StringBuilder(word);
             int length = jumble.Length;
