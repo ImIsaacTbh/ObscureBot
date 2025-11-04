@@ -216,12 +216,33 @@ public class Moderation : InteractionModuleBase
 		await Context.Interaction.RespondAsync(embed: embed, ephemeral: true);
 	}
 
-	//[SlashCommand("setlogchannel", "Sets the log channel for the server.", false, RunMode.Default)]
-	//[RequireUserPermission(GuildPermission.ManageChannels)]
-	//public async Task setLogChannel(ITextChannel channel)
-	//{
- //       Program.guilds.GetGuild(base.Context.Guild.Id).config.auditlogChannel = channel.Id;
- //       new EmbedBuilder().WithTitle("Log Channel Set").WithDescription($"<@{base.Context.Interaction.User.Id}> has set the log channel to <#{channel.Id}>").WithColor(Color.Red)
- //           .WithThumbnailUrl("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Hammer-keyboard-2.svg/1990px-Hammer-keyboard-2.svg.png");
- //   }
+	[SlashCommand("blacklistchannel", "Blacklists a channel from being monitored by the bot.", false, RunMode.Default)]
+	[RequireUserPermission(GuildPermission.ManageChannels)]
+	public async Task BlackListChannel(ITextChannel channel)
+	{
+		enums.Guild g = Guild.GetGuild(base.Context.Guild.Id);
+		if (g.config.blacklistedChannels.Contains(channel.Id))
+		{
+			g.config.blacklistedChannels.Remove(channel.Id);
+			var embed = new EmbedBuilder().WithTitle("Channel Unblacklisted").WithDescription($"Channel <#{channel.Id}> has been removed from the blacklist.").WithColor(Color.Green)
+				.WithThumbnailUrl("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Hammer-keyboard-2.svg/1990px-Hammer-keyboard-2.svg.png").Build();
+			await Context.Interaction.RespondAsync(embed: embed);
+        }
+		else
+		{
+			g.config.blacklistedChannels.Add(channel.Id);
+			var embed = new EmbedBuilder().WithTitle("Channel Blacklisted").WithDescription($"Channel <#{channel.Id}> has been added to the blacklist.").WithColor(Color.Red)
+				.WithThumbnailUrl("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Hammer-keyboard-2.svg/1990px-Hammer-keyboard-2.svg.png").Build();
+			await Context.Interaction.RespondAsync(embed: embed);
+        }
+    }
+
+    //[SlashCommand("setlogchannel", "Sets the log channel for the server.", false, RunMode.Default)]
+    //[RequireUserPermission(GuildPermission.ManageChannels)]
+    //public async Task setLogChannel(ITextChannel channel)
+    //{
+    //       Program.guilds.GetGuild(base.Context.Guild.Id).config.auditlogChannel = channel.Id;
+    //       new EmbedBuilder().WithTitle("Log Channel Set").WithDescription($"<@{base.Context.Interaction.User.Id}> has set the log channel to <#{channel.Id}>").WithColor(Color.Red)
+    //           .WithThumbnailUrl("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Hammer-keyboard-2.svg/1990px-Hammer-keyboard-2.svg.png");
+    //   }
 }

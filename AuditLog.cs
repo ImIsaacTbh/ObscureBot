@@ -45,6 +45,7 @@ namespace Obscura
                 return;
             }
             IMessage msg = await m.GetOrDownloadAsync();
+            if (msg.Channel.Id == logChannel.Id) return;
             EmbedBuilder embed = new EmbedBuilder()
             {
                 Title = $"Message updated in channel: <#{channel.Value.Id}>",
@@ -69,6 +70,7 @@ namespace Obscura
             {
                 return;
             }
+            if (oldmsg.Value.Channel == logChannel) return;
             EmbedBuilder embed = new EmbedBuilder()
             {
                 Title = $"Message updated in channel: <#{channel.Id}>",

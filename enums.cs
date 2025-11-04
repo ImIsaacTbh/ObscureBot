@@ -39,8 +39,6 @@ public class enums
 
 		public GuildConfig config { get; set; }
 
-
-
 		public virtual User GetUser(ulong userId)
 		{
 			return users.FirstOrDefault((User x) => x.profile.id == userId);
