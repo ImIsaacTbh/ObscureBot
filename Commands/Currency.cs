@@ -137,7 +137,7 @@ namespace Harmony_Utilities.Commands
                 int amountPP = amount / (robbers.Count() + 1);
                 EmbedBuilder fE = new EmbedBuilder()
                     .WithTitle("Profits")
-                    .WithDescription($"**Amount of pickles stolen from \"{target.GlobalName}\" **: {amount}\n{participants} all recieved {amountPP}pickles each!");
+                    .WithDescription($"**Amount of coins stolen from \"{target.GlobalName}\" **: {amount}\n{participants} all recieved {amountPP}Coins each!");
                 victim.profile.bank -= amount;
                 foreach (var r in robbers)
                 {
@@ -215,8 +215,8 @@ namespace Harmony_Utilities.Commands
             {
                 Title = $"{user.GlobalName}'s balance:",
             };
-            embed.AddField("Wallet:", $"{p.profile.currency}pickles", false);
-            embed.AddField("Bank:", $"{p.profile.bank}pickles", false);
+            embed.AddField("Wallet:", $"{p.profile.currency} Coins", false);
+            embed.AddField("Bank:", $"{p.profile.bank} Coins", false);
             embed.WithFooter("Obscūrus • Team Unity Development");
             embed.WithCurrentTimestamp();
             await RespondAsync(embed: embed.Build());
@@ -239,7 +239,7 @@ namespace Harmony_Utilities.Commands
                 else;
 
             }
-            await RespondAsync($"{Context.User.Mention} has granted all users in {role.Mention} a free payment of **{amount}**pickles to gamble with!");
+            await RespondAsync($"{Context.User.Mention} has granted all users in {role.Mention} a free payment of **{amount}** Coins to gamble with!");
         }
 
         [SlashCommand("deposit", "Put money in your bank to keep it safe :)")]
@@ -280,10 +280,10 @@ namespace Harmony_Utilities.Commands
             EmbedBuilder embed = new EmbedBuilder()
             {
                 Title = $"Deposit",
-                Description = $"Success! You deposited *{amount}*pickles into your bank"
+                Description = $"Success! You deposited *{amount}*Coins into your bank"
             };
-            embed.AddField("Wallet:", $"{p.profile.currency}pickles", false);
-            embed.AddField("Bank:", $"{p.profile.bank}pickles", false);
+            embed.AddField("Wallet:", $"{p.profile.currency}Coins", false);
+            embed.AddField("Bank:", $"{p.profile.bank}Coins", false);
             embed.WithFooter("Obscūrus • Team Unity Development");
             embed.WithCurrentTimestamp();
             await RespondAsync(embed: embed.Build());
@@ -308,10 +308,10 @@ namespace Harmony_Utilities.Commands
             EmbedBuilder embed = new EmbedBuilder()
             {
                 Title = $"Withdrawal",
-                Description = $"Success! You withdrew *{amount}*pickles from your bank"
+                Description = $"Success! You withdrew *{amount}*Coins from your bank"
             };
-            embed.AddField("Wallet:", $"{p.profile.currency}pickles", false);
-            embed.AddField("Bank:", $"{p.profile.bank}pickles", false);
+            embed.AddField("Wallet:", $"{p.profile.currency}Coins", false);
+            embed.AddField("Bank:", $"{p.profile.bank}Coins", false);
             embed.WithFooter("Obscūrus • Team Unity Development");
             embed.WithCurrentTimestamp();
             await RespondAsync(embed: embed.Build());
@@ -339,7 +339,7 @@ namespace Harmony_Utilities.Commands
                 }
                 
             }
-            await RespondAsync($"{Context.User.Mention} has fined all users in {role.Mention} a payment of **{amount}**pickles!");
+            await RespondAsync($"{Context.User.Mention} has fined all users in {role.Mention} a payment of **{amount}**Coins!");
         }
 
         [SlashCommand("pay", "Give someone some of your money")]
@@ -349,14 +349,14 @@ namespace Harmony_Utilities.Commands
             var p = Program.guilds.GetGuild(Context.Guild.Id).GetUser(user.Id);
             if (user.IsBot == true || user == Context.User) { await RespondAsync("You cannot pay that user!", ephemeral: true); return; };
 
-            if (author.profile.currency < amount) { await RespondAsync("You don't have enough pickles for that in your wallet!", ephemeral: true); return; }
+            if (author.profile.currency < amount) { await RespondAsync("You don't have enough Coins for that in your wallet!", ephemeral: true); return; }
             if (p.profile.robberyInProgress == true || p.profile.heistInProgress == true) { await RespondAsync("You can't do that while you're being robbed or heisted!", ephemeral: true); return; }
             author.profile.currency -= amount;
             p.profile.currency += amount;
             EmbedBuilder embed = new EmbedBuilder()
             {
                 Title = $"Payment",
-                Description = $"{Context.User.Mention} has paid {user.Mention}: *{amount}*pickles! \n{Context.User.Mention} now has *{author.profile.currency}*pickles! \n{user.Mention} now has *{p.profile.currency}*pickles!"
+                Description = $"{Context.User.Mention} has paid {user.Mention}: *{amount}*Coins! \n{Context.User.Mention} now has *{author.profile.currency}*Coins! \n{user.Mention} now has *{p.profile.currency}*Coins!"
             };
 
             embed.WithFooter("Obscūrus • Team Unity Development");
@@ -406,7 +406,7 @@ namespace Harmony_Utilities.Commands
             EmbedBuilder embed = new EmbedBuilder()
             {
                 Title = $"Scrambled",
-                Description = $"**Word: {jumble}** \nYou have to unscramble this word <t:{timeleft}:R> to get a reward! \nThe reward is: **{reward}pickles**!"
+                Description = $"**Word: {jumble}** \nYou have to unscramble this word <t:{timeleft}:R> to get a reward! \nThe reward is: **{reward}Coins**!"
             };
             embed.WithFooter("Obscūrus • Team Unity Development");
             embed.WithCurrentTimestamp();
@@ -438,7 +438,7 @@ namespace Harmony_Utilities.Commands
                     if (uresponse.Content.ToLower() == word.ToLower())
                     {
                         Console.WriteLine("Recieved response from someone who WAS the author \nThe response was right!");
-                        embed.Description = $"**You got it right** - You had {timer} seconds left! \nYou have won: **{reward}pickles**! \nThe word was: **{word}**";
+                        embed.Description = $"**You got it right** - You had {timer} seconds left! \nYou have won: **{reward}Coins**! \nThe word was: **{word}**";
                         uresponse.DeleteAsync();
                         user.profile.currency += reward;
                         win = true;
@@ -455,7 +455,7 @@ namespace Harmony_Utilities.Commands
             }
             if (!win)
             {
-                embed.Description = $"**You ran out of time** :( \nThe reward was: **{reward}pickles** \nThe word was: **\"{word}**\"";
+                embed.Description = $"**You ran out of time** :( \nThe reward was: **{reward}Coins** \nThe word was: **\"{word}**\"";
                 Console.WriteLine("Ran out of time :)");
                 await Context.Interaction.ModifyOriginalResponseAsync(x => x.Embed = embed.Build());
             }
@@ -472,7 +472,7 @@ namespace Harmony_Utilities.Commands
 
             var user = Context.User;
             var p = Program.guilds.GetGuild(Context.Guild.Id).GetUser(user.Id);
-            if (p.profile.currency < amount) { await RespondAsync("You don't have enough pickles for that in your wallet!", ephemeral: true); return; }
+            if (p.profile.currency < amount) { await RespondAsync("You don't have enough Coins for that in your wallet!", ephemeral: true); return; }
             await RespondAsync("Spinning....");
             p.profile.currency -= amount;
             int win = -1;
@@ -498,12 +498,12 @@ namespace Harmony_Utilities.Commands
 
             if (win == 0)
             {
-                embed.Description = $"**YOU LOSE! BETTER LUCK NEXT TIME** \nYou rolled: {e1}{e2}{e3} \nNew balance: *{p.profile.currency}*pickles";
+                embed.Description = $"**YOU LOSE! BETTER LUCK NEXT TIME** \nYou rolled: {e1}{e2}{e3} \nNew balance: *{p.profile.currency}*Coins";
             }
             else
             {
                 p.profile.currency += amount * 10;
-                embed.Description = $"**YOU WIN:** *{amount * 10}*pickles! CONGRATULATIONS! \nYou rolled: {e1}{e2}{e3} \nNew balance: *{p.profile.currency}*pickles";
+                embed.Description = $"**YOU WIN:** *{amount * 10}*Coins! CONGRATULATIONS! \nYou rolled: {e1}{e2}{e3} \nNew balance: *{p.profile.currency}*Coins";
 
             }
             await Context.Interaction.ModifyOriginalResponseAsync(x => { x.Content = ""; x.Embed = embed.Build(); });
@@ -526,10 +526,10 @@ namespace Harmony_Utilities.Commands
                 u.profile.currency += 1000;
                 EmbedBuilder embed = new EmbedBuilder()
                 {
-                    Title = $"{Context.User.GlobalName}'s Daily Allowance (+1000pickles)",
+                    Title = $"{Context.User.GlobalName}'s Daily Allowance (+1000Coins)",
                 };
-                embed.AddField("Old Wallet balance:", $"{ubank}pickles", false);
-                embed.AddField("New Wallet balance:", $"{u.profile.currency}pickles", false);
+                embed.AddField("Old Wallet balance:", $"{ubank}Coins", false);
+                embed.AddField("New Wallet balance:", $"{u.profile.currency}Coins", false);
                 embed.WithFooter("Obscūrus • Team Unity Development");
                 embed.WithCurrentTimestamp();
                 await RespondAsync(embed: embed.Build());
@@ -551,10 +551,10 @@ namespace Harmony_Utilities.Commands
                 u.profile.currency += 13000;
                 EmbedBuilder embed = new EmbedBuilder()
                 {
-                    Title = $"{Context.User.GlobalName}'s Weekly Allowance (+13000pickles)",
+                    Title = $"{Context.User.GlobalName}'s Weekly Allowance (+13000Coins)",
                 };
-                embed.AddField("Old Wallet balance:", $"{ubank}pickles", false);
-                embed.AddField("New Wallet balance:", $"{u.profile.currency}pickles", false);
+                embed.AddField("Old Wallet balance:", $"{ubank}Coins", false);
+                embed.AddField("New Wallet balance:", $"{u.profile.currency}Coins", false);
                 embed.WithFooter("Obscūrus • Team Unity Development");
                 embed.WithCurrentTimestamp();
                 await RespondAsync(embed: embed.Build());

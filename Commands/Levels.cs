@@ -49,7 +49,7 @@ namespace Obscure.Commands
         public enum leaderboard
         {
             Experience,
-            Pickles,
+            Coins,
             Punishments
         }
 
@@ -79,7 +79,7 @@ namespace Obscure.Commands
                 embed.WithFooter("Obscūrus • Team Unity Development");
                 embed.WithCurrentTimestamp();
             }
-            else if (option == leaderboard.Pickles)
+            else if (option == leaderboard.Coins)
             {
                 enums.User[] people = Program.guilds.GetGuild(Context.Guild.Id).users.ToArray().OrderBy(x => (x.profile.currency + x.profile.bank)).Reverse().ToArray();
 
@@ -89,11 +89,11 @@ namespace Obscure.Commands
                     var p = people[i];
                     if (Context.Guild.GetUser(p.profile.id) != null)
                     {
-                        embed.AddField($"#{i + 1} - {Context.Guild.GetUser(p.profile.id).GlobalName} *({p.profile.username})*", $"**{p.profile.currency + p.profile.bank}**pickles", false);
+                        embed.AddField($"#{i + 1} - {Context.Guild.GetUser(p.profile.id).GlobalName} *({p.profile.username})*", $"**{p.profile.currency + p.profile.bank}**Coins", false);
                     }
                     else
                     {
-                        embed.AddField($"#{i + 1} - {p.profile.username} ***(User no longer in server)***", $"**{p.profile.currency + p.profile.bank}**pickles", false);
+                        embed.AddField($"#{i + 1} - {p.profile.username} ***(User no longer in server)***", $"**{p.profile.currency + p.profile.bank}**Coins", false);
                     }
                     
                 }
@@ -125,8 +125,9 @@ namespace Obscure.Commands
         }
 
         [SlashCommand("profile", "See a users stats!")]
-        public async Task profileCmd(IGuildUser user)
+        public async Task profileCmd(IGuildUser user = null)
         {
+            if (user == null) { user = (IGuildUser)Context.User; }
             if (user.IsBot) { await RespondAsync("Fuck off that's a bot", ephemeral: true); return; }
             var uP = Program.guilds.GetGuild(Context.Guild.Id).GetUser(user.Id);
             EmbedBuilder embed = new EmbedBuilder()
@@ -140,8 +141,8 @@ namespace Obscure.Commands
             embed.AddField("Level:", uP.profile.level, true);
             embed.AddField("Total Messages Recorded:", uP.profile.totalRecordedMessages, false);
             embed.AddField("Punishments:", uP.punishments.criminalRecord.Count, false);
-            embed.AddField("Wallet:", $"{uP.profile.currency}pickles", false);
-            embed.AddField("Bank:", $"{uP.profile.bank}pickles", false);
+            embed.AddField("Wallet:", $"{uP.profile.currency} Coins", false);
+            embed.AddField("Bank:", $"{uP.profile.bank} Coins", false);
             embed.WithFooter("Obscūrus • Team Unity Development");
             embed.WithCurrentTimestamp();
             await RespondAsync(embed: embed.Build());

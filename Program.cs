@@ -2,17 +2,18 @@ using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Fergun.Interactive;
+using Google.Api;
+using Google.Apis.Util;
+using GScraper;
+using GScraper.Google;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using GScraper;
-using Obscure.API;
-using Obscura;
 using Newtonsoft.Json;
+using Obscura;
 using Obscura.FunStuff;
-using GScraper.Google;
-using Google.Apis.Util;
-using System.Diagnostics;
+using Obscure.API;
 using OpenQA.Selenium.DevTools.V125.Page;
+using System.Diagnostics;
 
 namespace Obscure
 {
@@ -52,6 +53,8 @@ namespace Obscure
                 .AddSingleton<InteractiveService>()
                 .AddSingleton<AuditLog>()
                 .BuildServiceProvider();
+
+
 
         }
 
@@ -255,18 +258,16 @@ namespace Obscure
 
         private async Task OnMessageRecieved(SocketMessage msg)
         {
-            Console.WriteLine("Got message");
             try
             {
                 if (msg.Author.IsBot || msg.Content == null || msg.Type == MessageType.GuildMemberJoin || msg.Type == MessageType.UserPremiumGuildSubscription)
                 {
-                    Console.WriteLine("Message does not meet criteria for processing");
                     return;
-
                 }
 
                 try
                 {
+
                     if ((msg.Channel as SocketGuildChannel) == null)
                     {
                         Console.WriteLine("Channel not found for message event");
@@ -275,14 +276,17 @@ namespace Obscure
                     else if (msg.Channel.Id == 1265596627234590720) Spot.Trigger(msg);
 
                     var _serializer = new Newtonsoft.Json.JsonSerializer();
+                    _serializer.ReferenceLoopHandling = ReferenceLoopHandling.Serialize;
                     using (var sw = new StreamWriter(botDir+"latestmsg.json"))
-                        using (var jw = new JsonTextWriter(sw))
+                    using (var jw = new JsonTextWriter(sw))
                     {
-                        _serializer.Serialize(jw, msg);
+                        var gmsg = msg as SocketMessage;
+                        _client.GetUser((msg.Channel as SocketGuildChannel).Guild.OwnerId);
+                        _serializer.Serialize(jw, gmsg.Content);
                     }
 
                     SocketGuild g = (msg.Channel as SocketGuildChannel).Guild;
-                    if (Program.guilds.GetGuild(g.Id).config.levelToggle != true) { Console.WriteLine("ITS FUCKING FALSE"); return; }
+                    if (Program.guilds.GetGuild(g.Id).config.levelToggle != true) { return; }
 
                     xpEvent(msg);
                 }
@@ -290,12 +294,11 @@ namespace Obscure
 
 
             }
-            catch (Exception ex) { Console.WriteLine("Bigger shit"); }
+            catch (Exception ex) { }
         }
 
         private static async void xpEvent(SocketMessage msg)
         {
-            Console.WriteLine("ITS NOT FUCKING FALSE");
             SocketGuild g = (msg.Channel as SocketGuildChannel).Guild;
             var rnd = new Random();
             enums.User u = guilds.GetGuild(g.Id).GetUser(msg.Author.Id);
@@ -318,7 +321,7 @@ namespace Obscure
 
 
                 var embed = new EmbedBuilder()
-                    .WithDescription($"Congrats {msg.Author.Mention}! You leveled up to level {newlevel} and earned *1000*pickles!\nTotal Messages Send: **{guilds.GetGuild(g.Id).GetUser(msg.Author.Id).profile.totalRecordedMessages}**\nTotal XP: **{guilds.GetGuild(g.Id).GetUser(msg.Author.Id).profile.exp}**xp\n Level **{newlevel + 1}** Requirement: {res}\n")
+                    .WithDescription($"Congrats {msg.Author.Mention}! You leveled up to level {newlevel} and earned *1000*Coins!\nTotal Messages Send: **{guilds.GetGuild(g.Id).GetUser(msg.Author.Id).profile.totalRecordedMessages}**\nTotal XP: **{guilds.GetGuild(g.Id).GetUser(msg.Author.Id).profile.exp}**xp\n Level **{newlevel + 1}** Requirement: {res}\n")
                     .WithFooter($"You are {(ulong)res - u.profile.exp}xp away from level {newlevel + 1}! \nObscūrus • Team Unity Development")
                     .WithCurrentTimestamp()
                     .WithThumbnailUrl(@"https://images-ext-2.discordapp.net/external/tNJAAj1zNcCC76NWawahfu9_EjfXAWBl5wyJD0f4Ots/https/upload.wikimedia.org/wikipedia/commons/thumb/2/24/Stonks_emoji.svg/2425px-Stonks_emoji.svg.png?format=webp&quality=lossless&width=794&height=671").Build();
