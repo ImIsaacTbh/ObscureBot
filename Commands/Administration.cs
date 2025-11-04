@@ -167,7 +167,7 @@ namespace Obscure.Commands
         public async Task togglelevel()
         {
             Program.guilds.GetGuild(Context.Guild.Id).config.levelToggle = !Program.guilds.GetGuild(Context.Guild.Id).config.levelToggle;
-            await RespondAsync("Success", ephemeral: true);
+            await RespondAsync($"Success: level functionality is now: {Program.guilds.GetGuild(Context.Guild.Id).config.levelToggle}", ephemeral: true);
         }
 
         public string list = "abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ";

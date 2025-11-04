@@ -11,6 +11,8 @@ using Newtonsoft.Json;
 using Obscura.FunStuff;
 using GScraper.Google;
 using Google.Apis.Util;
+using System.Diagnostics;
+using OpenQA.Selenium.DevTools.V125.Page;
 
 namespace Obscure
 {
@@ -24,8 +26,9 @@ namespace Obscure
             GatewayIntents = GatewayIntents.All | GatewayIntents.GuildMembers | GatewayIntents.MessageContent,
             AlwaysDownloadUsers = true,
             MessageCacheSize = 2048,
-            
+
         };
+        public static bool IsDev = Debugger.IsAttached;
         public static bool kill;
         public static enums.Guilds guilds = new enums.Guilds() { guilds = new List<enums.Guild>() };
         public static AuditLog auditlog = null;
@@ -34,6 +37,7 @@ namespace Obscure
 
         public Program()
         {
+
             botDir = Directory.GetCurrentDirectory() + "/ObscureBot/";
 
             _configuration = new ConfigurationBuilder()
@@ -126,6 +130,7 @@ namespace Obscure
 
         private async Task Client_Ready()
         {
+
             Thread stuff = new Thread(new ThreadStart(async () =>
             {
                 await config.InitStorage();
@@ -140,6 +145,8 @@ namespace Obscure
                 });
             }));
             stuff.Start();
+
+
             Thread msgOfHr = new Thread(new ThreadStart(async () =>
             {
                 await Task.Run(async () =>
@@ -197,10 +204,20 @@ namespace Obscure
                 });
             }));
             //#error 'RMV FOR PROD OR GAE'
-           //msgOfHr.Start();
+            //msgOfHr.Start();
 
             await _client.SetStatusAsync(UserStatus.DoNotDisturb);
-            await _client.SetGameAsync("Obscurities", type: ActivityType.Listening);
+            if (IsDev)
+            {
+                await _client.SetGameAsync("Running in development mode", type: ActivityType.CustomStatus);
+                Console.WriteLine("Startup Successful, running in development mode");
+            }
+            else
+            {
+                await _client.SetGameAsync("Witnessing Obscurities", type: ActivityType.CustomStatus);
+                Console.WriteLine("Startup Successful");
+            }
+
             //foreach(SocketGuild g in _client.Guilds)
             //{
             //    foreach(ISocketMessageChannel c in g.Channels)
@@ -208,7 +225,7 @@ namespace Obscure
             //        c.GetMessagesAsync(100, CacheMode.AllowDownload);
             //    }
             //}
-            Console.WriteLine("Startup Successful");
+
         }
 
         private async Task LogAsync(LogMessage message)
@@ -238,16 +255,21 @@ namespace Obscure
 
         private async Task OnMessageRecieved(SocketMessage msg)
         {
- 
+            Console.WriteLine("Got message");
             try
             {
-                if (msg.Author.IsBot||msg.Content == null||msg.Type == MessageType.GuildMemberJoin||msg.Type == MessageType.UserPremiumGuildSubscription)
+                if (msg.Author.IsBot || msg.Content == null || msg.Type == MessageType.GuildMemberJoin || msg.Type == MessageType.UserPremiumGuildSubscription)
+                {
+                    Console.WriteLine("Message does not meet criteria for processing");
                     return;
+
+                }
 
                 try
                 {
                     if ((msg.Channel as SocketGuildChannel) == null)
                     {
+                        Console.WriteLine("Channel not found for message event");
                         return;
                     }
                     else if (msg.Channel.Id == 1265596627234590720) Spot.Trigger(msg);
@@ -260,19 +282,20 @@ namespace Obscure
                     }
 
                     SocketGuild g = (msg.Channel as SocketGuildChannel).Guild;
-                    if (Program.guilds.GetGuild(g.Id).config.levelToggle == false) { return; }
+                    if (Program.guilds.GetGuild(g.Id).config.levelToggle != true) { Console.WriteLine("ITS FUCKING FALSE"); return; }
 
                     xpEvent(msg);
                 }
-                catch (Exception ex) { return; };   
+                catch (Exception ex) { Console.WriteLine(ex); return; };   
 
 
             }
-            catch (Exception ex) { }
+            catch (Exception ex) { Console.WriteLine("Bigger shit"); }
         }
 
         private static async void xpEvent(SocketMessage msg)
         {
+            Console.WriteLine("ITS NOT FUCKING FALSE");
             SocketGuild g = (msg.Channel as SocketGuildChannel).Guild;
             var rnd = new Random();
             enums.User u = guilds.GetGuild(g.Id).GetUser(msg.Author.Id);
