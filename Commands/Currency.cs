@@ -375,6 +375,7 @@ namespace Harmony_Utilities.Commands
             var user = Guild.GetGuild(Context.Guild.Id).GetUser(Context.User.Id);
             var author = Context.User;
             var rnd = new Random();
+        
 
             var wclient = new WebClient();
 
@@ -401,7 +402,7 @@ namespace Harmony_Utilities.Commands
             };
             embed.WithFooter("Obscūrus • Team Unity Development");
             embed.WithCurrentTimestamp();
-            await RespondAsync($"{Context.User.Mention}", embed: embed.Build());
+            await RespondAsync(embed: embed.Build());
             user.profile.lastUnscramble = DateTime.UtcNow.ToUniversalTime();
             await Task.Delay(50);
      
@@ -423,22 +424,17 @@ namespace Harmony_Utilities.Commands
 
                 if (uresponse.Content == null) { Console.WriteLine("response content null"); }
 
-                if (uresponse.Author != author) { Console.WriteLine("Recieved response from someone who was not the author"); }
                 else
                 {
                     if (uresponse.Content.ToLower() == word.ToLower())
                     {
-                        Console.WriteLine("Recieved response from someone who WAS the author \nThe response was right!");
-                        embed.Description = $"**You got it right** - You had {timer} seconds left! \nYou have won: **{reward}Coins**! \nThe word was: **{word}**";
+                        Console.WriteLine("The response was right!");
+                        embed.Description = $"{uresponse.Author.Mention} unscrambled **{word}** with {timer} seconds left! \nYou have won: **{reward}Coins**!";
                         uresponse.DeleteAsync();
                         user.profile.currency += reward;
                         win = true;
                         await Context.Interaction.ModifyOriginalResponseAsync(x => x.Embed = embed.Build());
                         break;
-                    }
-                    else
-                    {
-                        Console.WriteLine("Recieved response from someone who WAS the author \nBut the response was wrong");
                     }
 
                 }
@@ -446,7 +442,7 @@ namespace Harmony_Utilities.Commands
             }
             if (!win)
             {
-                embed.Description = $"**You ran out of time** :( \nThe reward was: **{reward}Coins** \nThe word was: **\"{word}**\"";
+                embed.Description = $"**Time ran out!** :( \nThe reward was: **{reward}Coins** \nThe word was: **\"{word}**\"";
                 Console.WriteLine("Ran out of time :)");
                 await Context.Interaction.ModifyOriginalResponseAsync(x => x.Embed = embed.Build());
             }
