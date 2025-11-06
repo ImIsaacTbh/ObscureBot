@@ -35,6 +35,7 @@ namespace Obscure
         public static AuditLog auditlog = null;
 
         public static string botDir;
+        public static List<ulong> activeUnscrambles = new List<ulong>();
 
         public Program()
         {

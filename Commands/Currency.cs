@@ -7,6 +7,7 @@ using Fergun.Interactive;
 using Obscure.API;
 using System.Net;
 using System.Text.RegularExpressions;
+using OpenQA.Selenium.Internal;
 
 namespace Harmony_Utilities.Commands
 {
@@ -366,91 +367,61 @@ namespace Harmony_Utilities.Commands
 
         }
 
-
-
-
         [SlashCommand("unscramble", "Unscramble the word before the timer runs out!")]
-        public async Task unscramble()
+        public async Task scrambledeggs()
         {
-            var user = Guild.GetGuild(Context.Guild.Id).GetUser(Context.User.Id);
-            var author = Context.User;
-            var rnd = new Random();
-        
-
-            var wclient = new WebClient();
-
-            var word = Regex.Replace(wclient.DownloadString("https://random-word-api.herokuapp.com/word"), @"[^0-9a-zA-Z]+", "");
-
-            StringBuilder jumble = new StringBuilder(word);
-            int length = jumble.Length;
-            for (int i = length - 1; i > 0; i--)
+            if (Program.activeUnscrambles.Contains(Context.Channel.Id))
             {
-                int j = rnd.Next(i);
-                char temp = jumble[j];
-                jumble[j] = jumble[i];
-                jumble[i] = temp;
+                await RespondAsync("There is already an active unscramble game in this channel!", ephemeral: true); return;
             }
+            Program.activeUnscrambles.Add(Context.Channel.Id);
+            string word = Regex.Replace(new HttpClient().GetStringAsync("https://random-word-api.herokuapp.com/word").Result, @"[^0-9a-zA-Z]+", "");
+            string fuckedup = new string(word.ToCharArray().OrderBy(s => (new Random()).NextDouble()).ToArray());
 
-            var rewrnd = new Random();
-            var reward = (int)Math.Ceiling(rewrnd.Next(50, 500) / 0.67 * word.Length);
-            Console.WriteLine($"Reward is {reward}");
+            int dubloons = (int)(new Random().Next(50, 500) / 0.67 * word.Length);
+
             long timeleft = DateTimeOffset.UtcNow.AddSeconds(30).ToUnixTimeSeconds();
             EmbedBuilder embed = new EmbedBuilder()
             {
                 Title = $"Scrambled",
-                Description = $"**Word: {jumble}** \nYou have to unscramble this word <t:{timeleft}:R> to get a reward! \nThe reward is: **{reward}Coins**!"
+                Description = $"**Word: {fuckedup}** \nYou have to unscramble this word <t:{timeleft}:R> to get a reward! \nThe reward is: **{dubloons}Coins**!"
             };
             embed.WithFooter("Obscūrus • Team Unity Development");
             embed.WithCurrentTimestamp();
             await RespondAsync(embed: embed.Build());
-            user.profile.lastUnscramble = DateTime.UtcNow.ToUniversalTime();
-            await Task.Delay(50);
-     
-            bool win = false;
-            while (DateTimeOffset.UtcNow.ToUnixTimeSeconds() < timeleft)
+
+            ulong? result = await waitForSpecificMessage(Context.Channel.Id, timeleft, word.ToLower());
+            if (result == null) 
+            { 
+                embed.Description = $"**Time ran out!** :( \nThe reward was: **{dubloons}Coins** \nThe word was: **\"{word}**\""; 
+            } 
+            else 
+            { 
+                IUser winner = Context.Guild.GetUser(result.Value);
+                embed.Description = $"{winner.Mention} unscrambled **{word}** with {timeleft - DateTimeOffset.UtcNow.ToUnixTimeSeconds()} seconds left! \nYou have won: **{dubloons}Coins**!"; 
+                Obscure.API.User.GetUser(Context.Guild.GetUser(result.Value)).profile.currency += dubloons;
+            }
+            await Context.Interaction.ModifyOriginalResponseAsync(x => x.Embed = embed.Build());
+            Program.activeUnscrambles.Remove(Context.Channel.Id);
+
+        }
+
+        public async Task<ulong?> waitForSpecificMessage(ulong channel, long timeLeft, string cleanWord)
+        {
+            IMessageChannel c = _client.GetChannel(channel) as IMessageChannel;
+            while (DateTimeOffset.UtcNow.ToUnixTimeSeconds() < timeLeft)
             {
-                var timer = timeleft - DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                await Task.Delay(1000);
-
-                Console.WriteLine("Getting message");
-                var messages = await Context.Channel.GetMessagesAsync(1).FlattenAsync();
-                Console.WriteLine("Got message");
-                var uresponse = messages.FirstOrDefault();
-                var msgRef = new MessageReference(messages.First().Id);
-                Console.WriteLine($"Current time (unix) {DateTimeOffset.UtcNow.ToUnixTimeSeconds()}");
-                Console.WriteLine($"Time left (unix): {timer}");
-                Console.WriteLine($"Time left: {timer} seconds");
-                if (uresponse == null) { Console.WriteLine("response null"); }
-
-                if (uresponse.Content == null) { Console.WriteLine("response content null"); }
-
-                else
+                var messages = await c.GetMessagesAsync(10).FlattenAsync();
+                foreach (var message in messages)
                 {
-                    if (uresponse.Content.ToLower() == word.ToLower())
+                    if(message.Content.ToLower().Contains(cleanWord))
                     {
-                        Console.WriteLine("The response was right!");
-                        embed.Description = $"{uresponse.Author.Mention} unscrambled **{word}** with {timer} seconds left! \nYou have won: **{reward}Coins**!";
-                        uresponse.DeleteAsync();
-                        user.profile.currency += reward;
-                        win = true;
-                        await Context.Interaction.ModifyOriginalResponseAsync(x => x.Embed = embed.Build());
-                        break;
+                        return message.Author.Id;
                     }
-
                 }
-
+                await Task.Delay(1000);
             }
-            if (!win)
-            {
-                embed.Description = $"**Time ran out!** :( \nThe reward was: **{reward}Coins** \nThe word was: **\"{word}**\"";
-                Console.WriteLine("Ran out of time :)");
-                await Context.Interaction.ModifyOriginalResponseAsync(x => x.Embed = embed.Build());
-            }
-            else
-            {
-                return;
-            }
-            user.profile.lastUnscramble = DateTime.UtcNow.ToUniversalTime();
+            return null;
         }
 
         [SlashCommand("slotmachine", "Gamble your life away")]
