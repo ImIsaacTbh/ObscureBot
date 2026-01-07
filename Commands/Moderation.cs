@@ -1,15 +1,19 @@
 // Obscura, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
 // Obscura.Commands.Moderation
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Discord;
 using Discord.Interactions;
 using Discord.Rest;
 using Discord.WebSocket;
-using Obscure.Commands;
+using Microsoft.VisualBasic;
 using Obscure;
 using Obscure.API;
+using Obscure.Commands;
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Channels;
+using System.Threading.Tasks;
 using Color = Discord.Color;
 
 public class Moderation : InteractionModuleBase
@@ -237,7 +241,131 @@ public class Moderation : InteractionModuleBase
         }
     }
 
-    //[SlashCommand("setlogchannel", "Sets the log channel for the server.", false, RunMode.Default)]
+	[SlashCommand("nickname", "Changes the nicknames of multiple users at once.")]
+	[RequireUserPermission(GuildPermission.Administrator)]
+	public async Task MassRename(string nickname = null)
+	{
+        foreach (IGuildUser u in Context.Guild.GetUsersAsync().Result ?? throw new InvalidOperationException())
+		{
+			try
+			{
+				await u.ModifyAsync(x => x.Nickname = nickname ?? string.Empty);
+			}
+			catch(Exception ex)
+			{
+				Console.WriteLine($"Dont have perms to change {u.Nickname}'s nick");
+			}
+			await Task.Delay(200);
+		}
+	}
+
+	[SlashCommand("removerole", "add a description bitch")]
+	[RequireUserPermission(GuildPermission.ManageRoles)]
+	public async Task removeRole(IRole role, string userIds)
+	{
+        string pattern = @"/[\<\@\>]/gm";
+
+        var except = Regex.Replace(userIds, pattern, "").Split(' ').Select(ulong.Parse).ToList();
+        var users = Context.Guild.GetUsersAsync().Result.Where(x => except.Contains(x.Id));
+        foreach (IGuildUser u in users)
+		{
+			await u.RemoveRoleAsync(role);
+            await Task.Delay(200);
+        }
+	}
+
+	[SlashCommand("addrole", "add a description")]
+	[RequireUserPermission(GuildPermission.ManageRoles)]
+	public async Task addRole(IRole role, string userIds)
+	{
+        string pattern = @"/[\<\@\>]/gm";
+
+        var except = Regex.Replace(userIds, pattern, "").Split(' ').Select(ulong.Parse).ToList();
+		var users = Context.Guild.GetUsersAsync().Result.Where(x => except.Contains(x.Id));
+        foreach (IGuildUser u in users)
+		{
+			await u.AddRoleAsync(role);
+            await Task.Delay(200);
+        }
+	}
+
+	[SlashCommand("voicemove", "move users from once voice channel to another")]
+	[RequireUserPermission(GuildPermission.Administrator)]
+	public async Task movePeeps(IVoiceChannel from, IVoiceChannel to, string _users = null)
+	{
+		var except = new List<ulong>();
+		var users = new List<IGuildUser>();
+        if (_users != null)
+		{
+			string pattern = @"/[\<\@\>]";
+			string corrected = Regex.Replace(_users, pattern, "");
+			var split = corrected.Split(' ');
+			List<ulong> parsed = new List<ulong>();
+			foreach (var s in split)
+			{
+				if(ulong.TryParse(s, out ulong id))
+				parsed.Add(id);
+            }
+			except = parsed;
+        }
+        foreach (var user in ((SocketVoiceChannel)from).ConnectedUsers)
+        {
+            if(!except.Contains(user.Id))
+			{
+				users.Add(user);
+				await user.ModifyAsync(x => x.Channel = Optional.Create(to));
+			}
+        }
+		var field = new EmbedFieldBuilder();
+		field.Name = "Moved Users";
+		field.Value = string.Join("\n", users.Select(x => $"{x.Mention}"));
+		var embed = new EmbedBuilder().WithTitle("Voice Move").WithDescription($"Moved the following people from <#{from.Id}> to <#{to.Id}>.").WithFields(field).WithColor(Color.Blue);
+		await Context.Interaction.RespondAsync(embed: embed.Build());
+    }
+
+	[SlashCommand("threadme", "hehehehehe")]
+	[RequireUserPermission(GuildPermission.Administrator)]
+	public async Task threadme(int amount, string fart)
+	{
+		for(int i = 0; i < amount; i++)
+		{
+			var thread = await ((SocketTextChannel)Context.Channel).CreateThreadAsync(Guid.NewGuid().ToString(), ThreadType.PublicThread, ThreadArchiveDuration.OneHour);
+			await thread.SendMessageAsync(fart);
+			await Task.Delay(150);
+			await thread.DeleteAsync();
+        }
+	}
+
+	[SlashCommand("masssend", "uh oh")]
+	[RequireUserPermission(GuildPermission.Administrator)]
+	public async Task massSendMessage(string message)
+	{
+		List<IUserMessage> msgs = new List<IUserMessage>();
+        foreach (ITextChannel channel in Context.Guild.GetTextChannelsAsync().Result)
+		{
+			var msg = await channel.SendMessageAsync(message);
+			msgs.Add(msg);
+			await Task.Delay(50);
+		}
+		foreach(IUserMessage m in msgs)
+		{
+			await m.DeleteAsync();
+		}
+	}
+
+	[SlashCommand("spamdm", "only for jamie")]
+	[RequireUserPermission(GuildPermission.Administrator)]
+	public async Task spamDM(string message, IUser user, int amount)
+	{
+		var c = await user.CreateDMChannelAsync();
+
+        for (int i = 0; i < amount; i++)
+		{
+			await c.SendMessageAsync(message);
+        }
+	}
+
+    //[SlashCommand("setlogchannel", "Sets the log channel for the server.", false, RunMode.Default)] why is this disabled?
     //[RequireUserPermission(GuildPermission.ManageChannels)]
     //public async Task setLogChannel(ITextChannel channel)
     //{
