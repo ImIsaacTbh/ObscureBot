@@ -22,8 +22,8 @@ namespace Obscura.Commands.EmbedBuilder
         public Discord.Embed Build()
         {
             Discord.EmbedBuilder builder = new Discord.EmbedBuilder();
-            builder.WithTitle(Title);
-            builder.WithDescription(Description);
+            builder.WithTitle(Title ?? "PLACEHOLDER TITLE");
+            builder.WithDescription(Description ?? "PLACEHOLDER DESCRIPTION");
             builder.WithColor(new Discord.Color(Color.R, Color.G, Color.B));
             builder.WithThumbnailUrl(ThumbnailImageUrl);
             foreach (Field field in Fields)

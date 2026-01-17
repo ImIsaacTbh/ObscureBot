@@ -58,6 +58,7 @@ namespace Obscure
             {
                 payload = payload.Remove(0, 6);
                 string[] data = payload.Split('_');
+                Console.WriteLine($"DATA 0 = {data[0]}");
                 switch (data[0])
                 {
                     case "field": 
@@ -77,14 +78,12 @@ namespace Obscure
                         break;
                     case "color":
                         Modal b3 = new ModalBuilder(title: $"Color", customId: $"modal:{arg.Data.CustomId}")
-                            .AddTextInput("HEX (With #)", $"modal:{arg.Data.CustomId}_data", TextInputStyle.Short,
-                                "PLACEHOLDER COLOR").Build();
+                            .AddTextInput("HEX (With #)", $"modal:{arg.Data.CustomId}_data", TextInputStyle.Short, "PLACEHOLDER COLOR").Build();
                         await arg.RespondWithModalAsync(b3);
                         break;
                     case "channel":
                         Modal b4 = new ModalBuilder(title: $"Channel", customId: $"modal:{arg.Data.CustomId}")
-                            .AddTextInput("Channel ID", $"modal:{arg.Data.CustomId}_data", TextInputStyle.Short,
-                                                               "PLACEHOLDER CHANNEL ID").Build();
+                            .AddTextInput("Channel ID", $"modal:{arg.Data.CustomId}_data", TextInputStyle.Short, "PLACEHOLDER CHANNEL ID").Build();
                         await arg.RespondWithModalAsync(b4);
                         break;
                     case "send":
@@ -98,19 +97,17 @@ namespace Obscure
                         break;
                     case "image":
                         Modal b5 = new ModalBuilder(title: $"Image", customId: $"modal:{arg.Data.CustomId}")
-                            .AddTextInput("Image URL", $"modal:{arg.Data.CustomId}_data", TextInputStyle.Paragraph,
-                                                               "PLACEHOLDER IMAGE URL").Build();
+                            .AddTextInput("Image URL", $"modal:{arg.Data.CustomId}_data", TextInputStyle.Paragraph, "PLACEHOLDER IMAGE URL").Build();
                         break;
                     case "thumbnail":
                         Modal b6 = new ModalBuilder(title: $"Thumbnail", customId: $"modal:{arg.Data.CustomId}")
-                            .AddTextInput("Thumbnail URL", $"modal:{arg.Data.CustomId}_data", TextInputStyle.Paragraph,
-                                                                                          "PLACEHOLDER THUMBNAIL URL").Build();
+                            .AddTextInput("Thumbnail URL", $"modal:{arg.Data.CustomId}_data", TextInputStyle.Paragraph, "PLACEHOLDER THUMBNAIL URL").Build();
                         await arg.RespondWithModalAsync(b6);
                         break;
                     case "description":
                         Modal b7 = new ModalBuilder(title: $"Description", customId: $"modal:{arg.Data.CustomId}")
-                            .AddTextInput("Description", $"modal:{arg.Data.CustomId}_data", TextInputStyle.Paragraph,
-                                                                                                                     "PLACEHOLDER DESCRIPTION").Build();
+                            .AddTextInput("Description", $"modal:{arg.Data.CustomId}_data", TextInputStyle.Paragraph, "PLACEHOLDER DESCRIPTION").Build();
+                        await arg.RespondWithModalAsync(b7);
                         break;
                 }
             }
@@ -120,6 +117,7 @@ namespace Obscure
         {
             List<SocketMessageComponentData> components = arg.Data.Components.ToList();
             string[] parts = arg.Data.CustomId.Split(':');
+
             if (parts[2].Contains("field"))
             {
                 string payload = parts[2].Remove(0, 6);
@@ -137,6 +135,10 @@ namespace Obscure
                     Inline = bool.Parse(components[2].Value)
                 });
                 await arg.RespondAsync($"Field {fID} for embed {eID} set to \"{components[0].Value}\" : \"{components[1].Value}\"", ephemeral: true);
+                await Command.embedbuilderInitialMessage[eID].ModifyAsync(x =>
+                {
+                    x.Embed = Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed.Build();
+                });
             }
 
             if (parts[2].Contains("title"))
@@ -146,6 +148,10 @@ namespace Obscure
                 //Console.WriteLine($"TITLE : CUSTOMID : {arg.Data.CustomId} EMBED ID : {eID}");
                 Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed.Title = components[0].Value;
                 await arg.RespondAsync($"Title for embed {eID} set to \"{components[0].Value}\"", ephemeral: true);
+                await Command.embedbuilderInitialMessage[eID].ModifyAsync(x =>
+                {
+                    x.Embed = Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed.Build();
+                });
             }
 
             if (parts[2].Contains("color"))
@@ -166,6 +172,10 @@ namespace Obscure
 
                 Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed.Color = c;
                 await arg.RespondAsync($"Color for embed {eID} set to \"{components[0].Value}\"", ephemeral: true);
+                await Command.embedbuilderInitialMessage[eID].ModifyAsync(x =>
+                {
+                    x.Embed = Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed.Build();
+                });
             }
 
             if (parts[2].Contains("channel"))
@@ -175,6 +185,10 @@ namespace Obscure
                 //Console.WriteLine($"CHANNEL : CUSTOMID : {arg.Data.CustomId} EMBED ID : {eID}");
                 Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed.ChannelId = ulong.Parse(components[0].Value);
                 await arg.RespondAsync($"Channel for embed {eID} set to \"{components[0].Value}\"", ephemeral: true);
+                await Command.embedbuilderInitialMessage[eID].ModifyAsync(x =>
+                {
+                    x.Embed = Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed.Build();
+                });
             }
 
             if (parts[2].Contains("image"))
@@ -184,6 +198,10 @@ namespace Obscure
                 //Console.WriteLine($"CHANNEL : CUSTOMID : {arg.Data.CustomId} EMBED ID : {eID}");
                 Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed.ImageURL = components[0].Value;
                 await arg.RespondAsync($"Image for embed {eID} set to \"[IMAGE]({components[0].Value})\"");
+                await Command.embedbuilderInitialMessage[eID].ModifyAsync(x =>
+                {
+                    x.Embed = Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed.Build();
+                });
             }
 
             if (parts[2].Contains("thumbnail"))
@@ -192,6 +210,10 @@ namespace Obscure
                 int.TryParse(payload, out int eID);
                 Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed.ThumbnailImageUrl = components[0].Value;
                 await arg.RespondAsync($"Thumbnail for embed {eID} set to \"[THUMBNAIL]({components[0].Value})\"", ephemeral: true);
+                await Command.embedbuilderInitialMessage[eID].ModifyAsync(x =>
+                {
+                    x.Embed = Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed.Build();
+                });
             }
 
             if (parts[2].Contains("description"))
@@ -200,6 +222,10 @@ namespace Obscure
                 int.TryParse(payload, out int eID);
                 Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed.Description = components[0].Value;
                 await arg.RespondAsync($"Description for embed {eID} set to \"{components[0].Value}\"", ephemeral: true);
+                await Command.embedbuilderInitialMessage[eID].ModifyAsync(x =>
+                {
+                    x.Embed = Command.embedBuilders.FirstOrDefault(x => x.embedID == eID).embed.Build();
+                });
             }
         }
 

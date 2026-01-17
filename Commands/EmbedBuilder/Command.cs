@@ -6,7 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Interactions;
+using Discord.Rest;
 using Discord.WebSocket;
+using Google.Cloud.AIPlatform.V1;
 using Obscure;
 
 namespace Obscura.Commands.EmbedBuilder
@@ -25,6 +27,7 @@ namespace Obscura.Commands.EmbedBuilder
         }
 
         public static List<EmbedBuilderData> embedBuilders = new List<EmbedBuilderData>();
+        public static Dictionary<int, RestInteractionMessage> embedbuilderInitialMessage = new Dictionary<int, RestInteractionMessage>();
 
         [SlashCommand("buildembed", "Starts an embed builder instance")]
         [RequireUserPermission(Discord.GuildPermission.ManageMessages)]
@@ -70,6 +73,7 @@ namespace Obscura.Commands.EmbedBuilder
             }
             builder.WithButton("Send", customId: $"embed:send_{embedID}", ButtonStyle.Danger);
             await RespondAsync(embed: e.Build(), components: builder.Build());
+            embedbuilderInitialMessage.Add(embedID, Context.Interaction.GetOriginalResponseAsync().Result);
 
         }
 
